@@ -16,7 +16,8 @@ namespace FileSync
         serverAddress,
         userName,
         passWord,
-        remoteFolder
+        remoteFolder,
+        fileFilter
 
     }
     public partial class UserConfig : Form
@@ -106,6 +107,14 @@ namespace FileSync
                 textBox_userName.Enabled = true;
                 textBox_passWord.Enabled = true;
             }
+        }
+
+        private void textBox_fileFilter_TextChanged(object sender, EventArgs e)
+        {
+            ConfigChangeInfo configChangeInfo = new ConfigChangeInfo();
+            configChangeInfo.changInfo = textBox_fileFilter.Text;
+            configChangeInfo.changeType = ConfigChangeType.fileFilter;
+            configChanged?.Invoke(sender, configChangeInfo);
         }
     }
 }

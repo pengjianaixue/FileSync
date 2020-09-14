@@ -91,7 +91,6 @@ namespace FileSync
         private bool isError = false;
         private string _errorInfo = "";
         private string _stdoutInfo = "";
-        private Task<string> _readOutput;
         private Process process = new Process();
         private bool isFindWSLBash = false;
         private string wlsBashPath = "";

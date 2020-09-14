@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
+
 namespace FileSync
 {
     class FileWachter
@@ -29,7 +30,7 @@ namespace FileSync
 
         private void FileSystemWatcher_Error(object sender, ErrorEventArgs e)
         {
-            throw new NotImplementedException();
+            LogHelper.writeErrorLog(e.GetException().Message);
         }
 
         public bool startWatchProcess(string path)

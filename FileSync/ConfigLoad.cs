@@ -16,7 +16,6 @@ namespace ConnectProxy.ConfigLoad
 
         [DllImport("kernel32.dll")]
         private static extern int WritePrivateProfileString(string section,string key,string val,string filepath);
-
         public static string getKeyValue(string key, string filename, string def = "",  string section = "UserConfig")
         {
             StringBuilder value = new StringBuilder(1024);

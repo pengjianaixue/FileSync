@@ -62,6 +62,10 @@ namespace FileSync
             _userNameOrHostName = IniFileOperator.getKeyValue(ConfigChangeType.userName.ToString(), _configFileName);
             _userPassWd = IniFileOperator.getKeyValue(ConfigChangeType.passWord.ToString(), _configFileName);
             _remotePath = IniFileOperator.getKeyValue(ConfigChangeType.remoteFolder.ToString(), _configFileName);
+            string fileFilters =  IniFileOperator.getKeyValue(ConfigChangeType.fileFilter.ToString(), _configFileName);
+            string[] splitchar = new string[] { ";" };
+            _fileFilter = fileFilters.Split(splitchar, StringSplitOptions.RemoveEmptyEntries);
+            userConfig.textBox_fileFilter.Text = fileFilters;
             userConfig.textBox_serverAddress.Text = _serverAddress;
             userConfig.textBox_localFolder.Text = _monitorPath;
             userConfig.textBox_passWord.Text = _userPassWd;
@@ -93,6 +97,16 @@ namespace FileSync
                 case ConfigChangeType.remoteFolder:
                     _remotePath = configChangeType.changInfo;
                     IniFileOperator.setKeyValue(ConfigChangeType.remoteFolder.ToString(), _remotePath, _configFileName);
+                    break;
+                case ConfigChangeType.fileFilter:
+                    string[] splitchar = new string[] { ";" };
+                    _fileFilter = configChangeType.changInfo.Split(splitchar, StringSplitOptions.RemoveEmptyEntries);
+                    IniFileOperator.setKeyValue(ConfigChangeType.fileFilter.ToString(), configChangeType.changInfo, _configFileName);
+                    //for (int i = 0; i< _fileFilter.Length;++i)
+                    //{
+                    //    IniFileOperator.setKeyValue(ConfigChangeType.fileFilter.ToString()+i.ToString(), _fileFilter[i], 
+                    //        _configFileName,"FileFilter");
+                    //}
                     break;
                 default:
                     break;
@@ -157,15 +171,32 @@ namespace FileSync
             }
         }
 
+
+        private bool isAttentionFile(ref FileChangeInfo fileChangeInfo)
+        {
+            string FileName = Path.GetFileName(fileChangeInfo.fullPath);
+            foreach (var item in _fileFilter)
+            {
+                if (FileName.EndsWith(item))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         private void updateFileList(ref FileChangeInfo fileChangeInfo)
         {
+            if (!isAttentionFile(ref fileChangeInfo))
+            {
+                return;
+            }
             if (!File.Exists(fileChangeInfo.fullPath))
             {
                 return;
             }
             if (!_fileIndexDic.ContainsKey(fileChangeInfo.fullPath))
             {
-                
                 addChangedFileRow(ref fileChangeInfo);
             }
             else
@@ -228,13 +259,24 @@ namespace FileSync
 
         private void removeFileItem(DataGridViewCellEventArgs e)
         {
-            string fileName = (string)FileChangeGridView.Rows[e.RowIndex].Cells[0].Value;
-            _fileIndexDic.Remove(fileName);
-            FileChangeGridView.Rows.RemoveAt(e.RowIndex);
-        }
+            MethodInvoker mi = new MethodInvoker(() =>
+            {
+                string fileName = (string)FileChangeGridView.Rows[e.RowIndex].Cells[0].Value;
+                _fileIndexDic.Remove(fileName);
+                FileChangeGridView.Rows.RemoveAt(e.RowIndex);
+            }
+            );
+            this.BeginInvoke(mi);
 
+        }
         private void uploadFile(DataGridViewCellEventArgs e)
         {
+            MethodInvoker mi = new MethodInvoker(() =>
+            {
+                DataGridViewButtonCell uploadButton =  (DataGridViewButtonCell)FileChangeGridView.Rows[e.RowIndex].Cells[3];//.Value = "Uploading";
+                uploadButton.Value = "Uploading";
+            });
+            BeginInvoke(mi);
             string fullFilePath = FileChangeGridView.Rows[e.RowIndex].Cells[0].Value.ToString();
             string[] splitchar = new string[] { ":" };
             string diskPrefix = "";
@@ -260,6 +302,7 @@ namespace FileSync
             if (fileTransfer.processIsFinishedWithSucess(out runInfo))
             {
                 removeFileItem(e);
+                LogHelper.writeInfoLog(string.Format("Upload File: {0} to {1}, Full Command: {2}", fullFilePath , remoteFilePath, rsyncCommand));
             }
             else
             {
@@ -279,8 +322,8 @@ namespace FileSync
                     )
                 {
                     //"rsync -avL  ./sshd_config   jianpeng@192.168.248.137:/home/jianpeng/workspace";
-                    uploadFile(e);
-                    return;
+                    //uploadFile(e);
+                    Task.Run(() => uploadFile(e));
 
                 }
                 else if (e.ColumnIndex == 4)
@@ -297,6 +340,7 @@ namespace FileSync
         private string _userNameOrHostName = "";
         private string _userPassWd = "";
         private string _remotePath = "";
+        private string[] _fileFilter = { };
         private FileWachter fileWachter = new FileWachter();
         private UserConfig userConfig = new UserConfig();
         private List<Tuple<string, string, string>> changedFileList = new List<Tuple<string, string, string>>();
