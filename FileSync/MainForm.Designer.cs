@@ -56,13 +56,14 @@
             this.globalFlowLayoutPanel.AutoSize = true;
             this.globalFlowLayoutPanel.Controls.Add(this.FileChangeGridView);
             this.globalFlowLayoutPanel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.globalFlowLayoutPanel.Location = new System.Drawing.Point(0, 25);
+            this.globalFlowLayoutPanel.Location = new System.Drawing.Point(0, 24);
             this.globalFlowLayoutPanel.Name = "globalFlowLayoutPanel";
-            this.globalFlowLayoutPanel.Size = new System.Drawing.Size(1074, 390);
+            this.globalFlowLayoutPanel.Size = new System.Drawing.Size(1074, 426);
             this.globalFlowLayoutPanel.TabIndex = 1;
             // 
             // FileChangeGridView
             // 
+            this.FileChangeGridView.AllowUserToAddRows = false;
             this.FileChangeGridView.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.FileChangeGridView.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCells;
             this.FileChangeGridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
@@ -76,7 +77,7 @@
             this.FileChangeGridView.Name = "FileChangeGridView";
             this.FileChangeGridView.RowHeadersWidth = 50;
             this.FileChangeGridView.RowTemplate.Height = 35;
-            this.FileChangeGridView.Size = new System.Drawing.Size(1059, 375);
+            this.FileChangeGridView.Size = new System.Drawing.Size(1059, 406);
             this.FileChangeGridView.TabIndex = 0;
             this.FileChangeGridView.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.FileChangeGridView_CellContentClick);
             // 
@@ -109,7 +110,7 @@
             this.UpLoad.Text = "UpLoad";
             this.UpLoad.ToolTipText = "UpLoad this file to server";
             this.UpLoad.UseColumnTextForButtonValue = true;
-            this.UpLoad.Width = 53;
+            this.UpLoad.Width = 54;
             // 
             // igroneThisTime
             // 
@@ -119,7 +120,7 @@
             this.igroneThisTime.Text = "Ignore";
             this.igroneThisTime.ToolTipText = "Ignore this file change";
             this.igroneThisTime.UseColumnTextForButtonValue = true;
-            this.igroneThisTime.Width = 47;
+            this.igroneThisTime.Width = 43;
             // 
             // menuStrip1
             // 
@@ -128,21 +129,21 @@
             this.syncFolderToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(1074, 25);
+            this.menuStrip1.Size = new System.Drawing.Size(1074, 24);
             this.menuStrip1.TabIndex = 2;
             this.menuStrip1.Text = "menuStrip1";
             // 
             // configToolStripMenuItem
             // 
             this.configToolStripMenuItem.Name = "configToolStripMenuItem";
-            this.configToolStripMenuItem.Size = new System.Drawing.Size(58, 21);
+            this.configToolStripMenuItem.Size = new System.Drawing.Size(55, 20);
             this.configToolStripMenuItem.Text = "Config";
             this.configToolStripMenuItem.Click += new System.EventHandler(this.configToolStripMenuItem_Click);
             // 
             // syncFolderToolStripMenuItem
             // 
             this.syncFolderToolStripMenuItem.Name = "syncFolderToolStripMenuItem";
-            this.syncFolderToolStripMenuItem.Size = new System.Drawing.Size(85, 21);
+            this.syncFolderToolStripMenuItem.Size = new System.Drawing.Size(78, 20);
             this.syncFolderToolStripMenuItem.Text = "Sync folder";
             // 
             // notifyIcon_background
@@ -158,22 +159,22 @@
             this.contextMenuStrip_backgroud.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.exitToolStripMenuItem});
             this.contextMenuStrip_backgroud.Name = "contextMenuStrip_backgroud";
-            this.contextMenuStrip_backgroud.Size = new System.Drawing.Size(97, 26);
+            this.contextMenuStrip_backgroud.Size = new System.Drawing.Size(93, 26);
             // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(96, 22);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(92, 22);
             this.exitToolStripMenuItem.Text = "Exit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
             // MainForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoScroll = true;
             this.AutoSize = true;
-            this.ClientSize = new System.Drawing.Size(1074, 415);
+            this.ClientSize = new System.Drawing.Size(1074, 450);
             this.Controls.Add(this.globalFlowLayoutPanel);
             this.Controls.Add(this.menuStrip1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
