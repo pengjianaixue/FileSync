@@ -64,8 +64,9 @@ namespace FileSync
 
         private void runCommand(string command)
         {
+
             process.StartInfo.FileName = programPath;
-            process.StartInfo.Arguments = command;
+            process.StartInfo.Arguments = "-c " + command;
             process.Start();
             
         }

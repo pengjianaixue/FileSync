@@ -8,7 +8,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using ConnectProxy.ConfigLoad;
+using Renci.SshNet.Sftp;
+using Renci.SshNet;
 
 namespace FileSync
 {
@@ -59,7 +60,7 @@ namespace FileSync
                 fileWachter.startWatchProcess(_monitorPath);
             }
             _serverAddress = IniFileOperator.getKeyValue(ConfigChangeType.serverAddress.ToString(), _configFileName);
-            _userNameOrHostName = IniFileOperator.getKeyValue(ConfigChangeType.userName.ToString(), _configFileName);
+            _userName = IniFileOperator.getKeyValue(ConfigChangeType.userName.ToString(), _configFileName);
             _userPassWd = IniFileOperator.getKeyValue(ConfigChangeType.passWord.ToString(), _configFileName);
             _remotePath = IniFileOperator.getKeyValue(ConfigChangeType.remoteFolder.ToString(), _configFileName);
             string fileFilters =  IniFileOperator.getKeyValue(ConfigChangeType.fileFilter.ToString(), _configFileName);
@@ -69,7 +70,7 @@ namespace FileSync
             userConfig.textBox_serverAddress.Text = _serverAddress;
             userConfig.textBox_localFolder.Text = _monitorPath;
             userConfig.textBox_passWord.Text = _userPassWd;
-            userConfig.textBox_userName.Text = _userNameOrHostName;
+            userConfig.textBox_userName.Text = _userName;
             userConfig.textBox_remoteFolder.Text = _remotePath;
 
         }
@@ -87,8 +88,8 @@ namespace FileSync
                     IniFileOperator.setKeyValue(ConfigChangeType.serverAddress.ToString(), _serverAddress, _configFileName);
                     break;
                 case ConfigChangeType.userName:
-                    _userNameOrHostName = configChangeType.changInfo;
-                    IniFileOperator.setKeyValue(ConfigChangeType.userName.ToString(), _userNameOrHostName, _configFileName);
+                    _userName = configChangeType.changInfo;
+                    IniFileOperator.setKeyValue(ConfigChangeType.userName.ToString(), _userName, _configFileName);
                     break;
                 case ConfigChangeType.passWord:
                     _userPassWd = configChangeType.changInfo;
@@ -223,10 +224,8 @@ namespace FileSync
         {
             for (int i = 0; i < FileChangeGridView.RowCount; ++i)
             {
-                for (int j = 0; j < FileChangeGridView.ColumnCount; ++j)
-                {
-                    this.FileChangeGridView.Rows[i].Cells[j].Value = "";
-                }
+
+                FileChangeGridView.Rows.RemoveAt(i);
             }
         }
 
@@ -269,6 +268,41 @@ namespace FileSync
             this.BeginInvoke(mi);
 
         }
+
+        private bool checkDirAndCreate(string remoteFilePath)
+        {
+            SftpClient sftpClient = new SftpClient(_serverAddress, _userName,_userPassWd);
+            sftpClient.Connect();
+            if (sftpClient!=null && sftpClient.IsConnected)
+            {
+                string remotePath  = Path.GetDirectoryName(remoteFilePath).Replace("\\","/");
+                if (!sftpClient.Exists(remotePath))
+                {
+                    string commandInfo = "";
+                    try
+                    {
+                        string mkdirCommand =  string.Format("mkdir -p {0}", remotePath);
+                        fileTransfer.executeWSLBashCommand(string.Format( "\"ssh {0}@{1} {2}\"", _userName, _serverAddress, mkdirCommand));
+                        if (fileTransfer.processIsFinishedWithSucess(out commandInfo))
+                        {
+                            return true;
+                        }
+                        return true;
+                    }
+                    catch (System.Exception ex)
+                    {
+                        MessageBox.Show(string.Format("Remote path can not create : {0} ,Error info: {1}",
+                    remotePath, commandInfo), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return false;
+                    }
+                   
+                }
+                return true;
+            }
+            return false;
+            
+        }
+
         private void uploadFile(DataGridViewCellEventArgs e)
         {
             MethodInvoker mi = new MethodInvoker(() =>
@@ -295,8 +329,12 @@ namespace FileSync
             string filePath = fullFilePath.Replace(_monitorPath, "").Replace("\\", "/");
             string remoteFilePath = _remotePath + "/" + filePath;
             remoteFilePath = remoteFilePath.Replace("//", "/");
-            string rsyncCommand = string.Format("rsync -avzr {0} {1}:{2}", pcFilePathToWSLAddress, _serverAddress, remoteFilePath);
-            string executeCommand = "-c " + "\"" + rsyncCommand + "\"";
+            if (!checkDirAndCreate(remoteFilePath))
+            {
+                return;
+            }
+            string rsyncCommand = string.Format("rsync -avzr {0} {1}@{2}:{3}", pcFilePathToWSLAddress, _userName,_serverAddress, remoteFilePath);
+            string executeCommand = "\"" + rsyncCommand + "\"";
             fileTransfer.executeWSLBashCommand(executeCommand);
             string runInfo = "";
             if (fileTransfer.processIsFinishedWithSucess(out runInfo))
@@ -337,7 +375,7 @@ namespace FileSync
         private string _configFileName = "";
         private string _monitorPath = "";
         private string _serverAddress = "";
-        private string _userNameOrHostName = "";
+        private string _userName = "";
         private string _userPassWd = "";
         private string _remotePath = "";
         private string[] _fileFilter = { };
@@ -347,5 +385,32 @@ namespace FileSync
         private Dictionary<string, int> _fileIndexDic = new Dictionary<string, int>();
         private string wlsBashPath;
         private bool isFindWSLBash;
+        private bool isPause = false;
+
+        private void resetToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            _fileIndexDic.Clear();
+            clearView();
+        }
+
+        private void pauseToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (!isPause)
+            {
+                fileWachter.pauseWatcher();
+                toolStripStatusLabel_status.Text = "Monitor is pausing!";
+                statusStrip_infoBar.ForeColor = Color.OrangeRed;
+                pauseToolStripMenuItem.Text = "Resume Monitor";
+                isPause = true;
+            }
+            else
+            {
+                fileWachter.resumeWatcher();
+                toolStripStatusLabel_status.Text = "";
+                pauseToolStripMenuItem.Text = "Pause Monitor";
+                isPause = false;
+            }
+
+        }
     }
 }

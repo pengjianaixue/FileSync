@@ -50,10 +50,13 @@ namespace FileSync
             fileSystemWatcher.EnableRaisingEvents = true;
             return true;
         }
-
-        private void FileSystemWatcher_Renamed(object sender, RenamedEventArgs e)
+        public void pauseWatcher()
         {
-            throw new NotImplementedException();
+            fileSystemWatcher.EnableRaisingEvents = false;
+        }
+        public void resumeWatcher()
+        {
+            fileSystemWatcher.EnableRaisingEvents = true;
         }
 
         private FileSystemWatcher fileSystemWatcher = new FileSystemWatcher();
