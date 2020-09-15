@@ -54,10 +54,19 @@ namespace FileSync
 
         private void sftpConnect()
         {
-            if (_serverAddress.Length > 0 && _serverAddress.Length > 0 && _serverAddress.Length > 0)
+            
+            try
             {
-                _sftpClient = new SftpClient(_serverAddress, _userName, _userPassWd);
-                _sftpClient.Connect();
+	            if (_serverAddress.Length > 0 && _userName.Length > 0 && _userPassWd.Length > 0)
+                {
+                    _sftpClient = new SftpClient(_serverAddress, _userName, _userPassWd);
+                    _sftpClient.Connect();
+                }
+            }
+            catch (System.Exception ex)
+            {
+                MessageBox.Show(string.Format("sftp connect is failed Error info: {0}, pelase check connect config!", ex.Message), 
+                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -97,19 +106,27 @@ namespace FileSync
                     fileWachter.startWatchProcess(_monitorPath);
                     break;
                 case ConfigChangeType.serverAddress:
-                    _serverAddress = configChangeType.changInfo;
-                    sftpConnect();
-                    IniFileOperator.setKeyValue(ConfigChangeType.serverAddress.ToString(), _serverAddress, _configFileName);
+                    if (_serverAddress != configChangeType.changInfo)
+                    {
+                        _serverAddress = configChangeType.changInfo;
+                        IniFileOperator.setKeyValue(ConfigChangeType.serverAddress.ToString(), _serverAddress, _configFileName);
+                    }
                     break;
                 case ConfigChangeType.userName:
-                    _userName = configChangeType.changInfo;
-                    sftpConnect();
-                    IniFileOperator.setKeyValue(ConfigChangeType.userName.ToString(), _userName, _configFileName);
+                    if (_userName != configChangeType.changInfo)
+                    {
+                        _userName = configChangeType.changInfo;
+                        connectInfoIsChanged = true;
+                        IniFileOperator.setKeyValue(ConfigChangeType.userName.ToString(), _userName, _configFileName);
+                    }
                     break;
                 case ConfigChangeType.passWord:
-                    _userPassWd = configChangeType.changInfo;
-                    sftpConnect();
-                    IniFileOperator.setKeyValue(ConfigChangeType.passWord.ToString(), _userPassWd, _configFileName);
+                    if (_userPassWd != configChangeType.changInfo)
+                    {
+                        _userPassWd = configChangeType.changInfo;
+                        connectInfoIsChanged = true;
+                        IniFileOperator.setKeyValue(ConfigChangeType.passWord.ToString(), _userPassWd, _configFileName);
+                    }
                     break;
                 case ConfigChangeType.remoteFolder:
                     _remotePath = configChangeType.changInfo;
@@ -269,12 +286,17 @@ namespace FileSync
                 FileChangeGridView.Rows.RemoveAt(e.RowIndex);
             }
             );
-            this.BeginInvoke(mi);
+            this.Invoke(mi);
 
         }
 
         private bool checkDirAndCreate(string remoteFilePath)
         {
+            if (connectInfoIsChanged)
+            {
+                sftpConnect();
+                connectInfoIsChanged = false;
+            }
             if (_sftpClient != null && !_sftpClient.IsConnected)
             {
                 _sftpClient.Connect();
@@ -319,7 +341,10 @@ namespace FileSync
                 resizeColumn(3);
                 uploadButton.Value = "Uploading";
             });
-            BeginInvoke(mi);
+            lock (this)
+            {
+                Invoke(mi);
+            }
             string fullFilePath = FileChangeGridView.Rows[e.RowIndex].Cells[0].Value.ToString();
             string[] splitchar = new string[] { ":" };
             string diskPrefix = "";
@@ -342,14 +367,19 @@ namespace FileSync
             {
                 return;
             }
-            string rsyncCommand = string.Format("rsync -avzr {0} {1}@{2}:{3}", pcFilePathToWSLAddress, _userName,_serverAddress, remoteFilePath);
+            string rsyncCommand = string.Format("rsync -avzr {0} {1}@{2}:{3}", pcFilePathToWSLAddress, _userName, _serverAddress, remoteFilePath);
+            //string rsyncCommand = string.Format("rsync -avzr {0} {1}:{2}", pcFilePathToWSLAddress, _serverAddress, remoteFilePath);
             string executeCommand = "\"" + rsyncCommand + "\"";
             fileTransfer.executeWSLBashCommand(executeCommand);
             string runInfo = "";
             if (fileTransfer.processIsFinishedWithSucess(out runInfo))
             {
-                removeFileItem(e);
-                LogHelper.writeInfoLog(string.Format("Upload File: {0} to {1}, Full Command: {2}", fullFilePath , remoteFilePath, rsyncCommand));
+                lock (this)
+                {
+                    removeFileItem(e);
+                    LogHelper.writeInfoLog(string.Format("Upload File: {0} to {1}, Full Command: {2}", fullFilePath, remoteFilePath, rsyncCommand));
+                }
+                
             }
             else
             {
@@ -396,7 +426,7 @@ namespace FileSync
         private string wlsBashPath;
         private bool isFindWSLBash;
         private bool isPause = false;
-
+        private bool connectInfoIsChanged = false;
         private void resetToolStripMenuItem_Click(object sender, EventArgs e)
         {
             _fileIndexDic.Clear();
