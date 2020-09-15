@@ -156,17 +156,13 @@ namespace FileSync
             }
 
         }
-        private void resizeColumn()
+        private void resizeColumn(int column)
         {
             if (FileChangeGridView.InvokeRequired)
             {
                 ActionCall<int> resizeAction = new ActionCall<int>((int a) =>
                 {
-                    foreach (DataGridViewColumn column in FileChangeGridView.Columns)
-                    {
-                        column.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
-                        break;
-                    }
+                    FileChangeGridView.Columns[column].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
                     return 0;
                 });
                 this.Invoke(resizeAction, 0);
@@ -174,12 +170,9 @@ namespace FileSync
             }
             else
             {
-                
-                foreach (DataGridViewColumn column in FileChangeGridView.Columns)
-                {
-                    column.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
-                    break;
-                }
+
+                FileChangeGridView.Columns[column].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+                return;
             }
         }
 
@@ -216,7 +209,7 @@ namespace FileSync
                 FileChangeGridView.Rows[_fileIndexDic[fileChangeInfo.fullPath]].Cells[1].Value = fileChangeInfo.changeTime;
                 FileChangeGridView.Rows[_fileIndexDic[fileChangeInfo.fullPath]].Cells[2].Value = fileChangeInfo.changeType.ToString();
             }
-            resizeColumn();
+            resizeColumn(0);
             return;
 
         }
@@ -323,6 +316,7 @@ namespace FileSync
             {
                 DataGridViewButtonCell uploadButton =  (DataGridViewButtonCell)FileChangeGridView.Rows[e.RowIndex].Cells[3];//.Value = "Uploading";
                 uploadButton.UseColumnTextForButtonValue = false;
+                resizeColumn(3);
                 uploadButton.Value = "Uploading";
             });
             BeginInvoke(mi);
