@@ -91,9 +91,6 @@ namespace FileSync
             userConfig.textBox_passWord.Text = _userPassWd;
             userConfig.textBox_userName.Text = _userName;
             userConfig.textBox_remoteFolder.Text = _remotePath;
-            sftpConnect();
-
-
 
         }
         private void UserConfig_configChanged(object sender, UserConfig.ConfigChangeInfo configChangeType)
@@ -292,7 +289,7 @@ namespace FileSync
 
         private bool checkDirAndCreate(string remoteFilePath)
         {
-            if (connectInfoIsChanged)
+            if (connectInfoIsChanged || _sftpClient == null)
             {
                 sftpConnect();
                 connectInfoIsChanged = false;
