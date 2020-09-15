@@ -51,6 +51,16 @@ namespace FileSync
                 wlsBashPath = "bash.exe";//"\"" + wlsBashPath + "\"";
             }
         }
+
+        private void sftpConnect()
+        {
+            if (_serverAddress.Length > 0 && _serverAddress.Length > 0 && _serverAddress.Length > 0)
+            {
+                _sftpClient = new SftpClient(_serverAddress, _userName, _userPassWd);
+                _sftpClient.Connect();
+            }
+        }
+
         private void configLoad()
         {
 
@@ -72,6 +82,9 @@ namespace FileSync
             userConfig.textBox_passWord.Text = _userPassWd;
             userConfig.textBox_userName.Text = _userName;
             userConfig.textBox_remoteFolder.Text = _remotePath;
+            sftpConnect();
+
+
 
         }
         private void UserConfig_configChanged(object sender, UserConfig.ConfigChangeInfo configChangeType)
@@ -85,14 +98,17 @@ namespace FileSync
                     break;
                 case ConfigChangeType.serverAddress:
                     _serverAddress = configChangeType.changInfo;
+                    sftpConnect();
                     IniFileOperator.setKeyValue(ConfigChangeType.serverAddress.ToString(), _serverAddress, _configFileName);
                     break;
                 case ConfigChangeType.userName:
                     _userName = configChangeType.changInfo;
+                    sftpConnect();
                     IniFileOperator.setKeyValue(ConfigChangeType.userName.ToString(), _userName, _configFileName);
                     break;
                 case ConfigChangeType.passWord:
                     _userPassWd = configChangeType.changInfo;
+                    sftpConnect();
                     IniFileOperator.setKeyValue(ConfigChangeType.passWord.ToString(), _userPassWd, _configFileName);
                     break;
                 case ConfigChangeType.remoteFolder:
@@ -103,11 +119,6 @@ namespace FileSync
                     string[] splitchar = new string[] { ";" };
                     _fileFilter = configChangeType.changInfo.Split(splitchar, StringSplitOptions.RemoveEmptyEntries);
                     IniFileOperator.setKeyValue(ConfigChangeType.fileFilter.ToString(), configChangeType.changInfo, _configFileName);
-                    //for (int i = 0; i< _fileFilter.Length;++i)
-                    //{
-                    //    IniFileOperator.setKeyValue(ConfigChangeType.fileFilter.ToString()+i.ToString(), _fileFilter[i], 
-                    //        _configFileName,"FileFilter");
-                    //}
                     break;
                 default:
                     break;
@@ -271,12 +282,14 @@ namespace FileSync
 
         private bool checkDirAndCreate(string remoteFilePath)
         {
-            SftpClient sftpClient = new SftpClient(_serverAddress, _userName,_userPassWd);
-            sftpClient.Connect();
-            if (sftpClient!=null && sftpClient.IsConnected)
+            if (_sftpClient != null && !_sftpClient.IsConnected)
+            {
+                _sftpClient.Connect();
+            }
+            if (_sftpClient != null && _sftpClient.IsConnected)
             {
                 string remotePath  = Path.GetDirectoryName(remoteFilePath).Replace("\\","/");
-                if (!sftpClient.Exists(remotePath))
+                if (!_sftpClient.Exists(remotePath))
                 {
                     string commandInfo = "";
                     try
@@ -299,6 +312,7 @@ namespace FileSync
                 }
                 return true;
             }
+            MessageBox.Show(string.Format("Sftp Client is not build,Please check config !"), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             return false;
             
         }
@@ -308,6 +322,7 @@ namespace FileSync
             MethodInvoker mi = new MethodInvoker(() =>
             {
                 DataGridViewButtonCell uploadButton =  (DataGridViewButtonCell)FileChangeGridView.Rows[e.RowIndex].Cells[3];//.Value = "Uploading";
+                uploadButton.UseColumnTextForButtonValue = false;
                 uploadButton.Value = "Uploading";
             });
             BeginInvoke(mi);
@@ -370,6 +385,7 @@ namespace FileSync
                 }
             }
         }
+        private SftpClient _sftpClient ;
         private FileTransfer fileTransfer = new FileTransfer();
         private delegate int ActionCall<in T>(T t);
         private string _configFileName = "";
