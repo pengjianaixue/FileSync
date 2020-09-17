@@ -66,7 +66,7 @@ namespace FileSync
         {
 
             process.StartInfo.FileName = programPath;
-            LogHelper.writeInfoLog(string.Format("send rsync command:", command));
+            LogHelper.writeInfoLog(string.Format("send rsync command: {0}", command));
             process.StartInfo.Arguments = "-c " + command;
             process.Start();
             

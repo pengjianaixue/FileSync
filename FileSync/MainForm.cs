@@ -291,10 +291,13 @@ namespace FileSync
         {
             try
             {
-                if (connectInfoIsChanged || _sftpClient == null)
+                lock (sftpLocker)
                 {
-                    sftpConnect();
-                    connectInfoIsChanged = false;
+                    if (connectInfoIsChanged || _sftpClient == null)
+                    {
+                        sftpConnect();
+                        connectInfoIsChanged = false;
+                    }
                 }
                 if (_sftpClient != null && !_sftpClient.IsConnected)
                 {
@@ -341,20 +344,26 @@ namespace FileSync
             
         }
 
+
+        private void updateUploadStatusDisplay(DataGridViewCellEventArgs e,string displayStatus)
+        {
+            Action<string> mi = new Action<string>((status) =>
+            {
+                DataGridViewButtonCell uploadButton = (DataGridViewButtonCell)FileChangeGridView.Rows[e.RowIndex].Cells[3];//.Value = "Uploading";
+        uploadButton.UseColumnTextForButtonValue = false;
+                resizeColumn(3);
+                uploadButton.Value = status;
+            });
+            lock (UILockObj)
+            {
+                LogHelper.writeInfoLog(string.Format("change upload status:{0} !", displayStatus));
+                Invoke(mi, displayStatus);
+            }
+        }
+
         private void uploadFile(DataGridViewCellEventArgs e)
         {
-            MethodInvoker mi = new MethodInvoker(() =>
-            {
-                DataGridViewButtonCell uploadButton =  (DataGridViewButtonCell)FileChangeGridView.Rows[e.RowIndex].Cells[3];//.Value = "Uploading";
-                uploadButton.UseColumnTextForButtonValue = false;
-                resizeColumn(3);
-                uploadButton.Value = "Uploading";
-            });
-            lock (lockObj)
-            {
-                LogHelper.writeInfoLog("Uploading!");
-                Invoke(mi);
-            }
+            updateUploadStatusDisplay(e,"Uploading");
             string fullFilePath = FileChangeGridView.Rows[e.RowIndex].Cells[0].Value.ToString();
             string[] splitchar = new string[] { ":" };
             string diskPrefix = "";
@@ -375,6 +384,7 @@ namespace FileSync
             remoteFilePath = remoteFilePath.Replace("//", "/");
             if (!checkDirAndCreate(remoteFilePath))
             {
+                updateUploadStatusDisplay(e, "Upload");
                 return;
             }
             string rsyncCommand = string.Format("rsync -avzr {0} {1}@{2}:{3}", pcFilePathToWSLAddress, _userName, _serverAddress, remoteFilePath);
@@ -384,16 +394,16 @@ namespace FileSync
             string runInfo = "";
             if (fileTransfer.processIsFinishedWithSucess(out runInfo))
             {
-                lock (lockObj)
+                lock (UILockObj)
                 {
                     removeFileItem(e);
                     LogHelper.writeInfoLog(string.Format("Upload File: {0} to {1}, Full Command: {2}", fullFilePath, remoteFilePath, rsyncCommand));
                     LogHelper.writeInfoLog("Uploaded!");
                 }
-                
             }
             else
             {
+                updateUploadStatusDisplay(e, "Upload");
                 MessageBox.Show(string.Format("File: {0} Upload Faild! Error info: {1}",
                     FileChangeGridView.Rows[e.RowIndex].Cells[0].Value.ToString(), runInfo), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
@@ -410,8 +420,8 @@ namespace FileSync
                     )
                 {
                     //"rsync -avL  ./sshd_config   jianpeng@192.168.248.137:/home/jianpeng/workspace";
-                    //uploadFile(e);
-                    Task.Run(() => uploadFile(e));
+                    Task.Factory.StartNew(() => uploadFile(e), TaskCreationOptions.PreferFairness);
+                    //Task.Run(() => uploadFile(e));
 
                 }
                 else if (e.ColumnIndex == 4)
@@ -420,7 +430,8 @@ namespace FileSync
                 }
             }
         }
-        private readonly static object lockObj = new object();
+        private readonly static object UILockObj = new object();
+        private readonly static object sftpLocker = new object();
         private SftpClient _sftpClient ;
         private FileTransfer fileTransfer = new FileTransfer();
         private delegate int ActionCall<in T>(T t);
