@@ -289,43 +289,53 @@ namespace FileSync
 
         private bool checkDirAndCreate(string remoteFilePath)
         {
-            if (connectInfoIsChanged || _sftpClient == null)
+            try
             {
-                sftpConnect();
-                connectInfoIsChanged = false;
-            }
-            if (_sftpClient != null && !_sftpClient.IsConnected)
-            {
-                _sftpClient.Connect();
-            }
-            if (_sftpClient != null && _sftpClient.IsConnected)
-            {
-                string remotePath  = Path.GetDirectoryName(remoteFilePath).Replace("\\","/");
-                if (!_sftpClient.Exists(remotePath))
+                if (connectInfoIsChanged || _sftpClient == null)
                 {
-                    string commandInfo = "";
-                    try
+                    sftpConnect();
+                    connectInfoIsChanged = false;
+                }
+                if (_sftpClient != null && !_sftpClient.IsConnected)
+                {
+                    _sftpClient.Connect();
+                }
+                if (_sftpClient != null && _sftpClient.IsConnected)
+                {
+                    string remotePath = Path.GetDirectoryName(remoteFilePath).Replace("\\", "/");
+                    if (!_sftpClient.Exists(remotePath))
                     {
-                        string mkdirCommand =  string.Format("mkdir -p {0}", remotePath);
-                        fileTransfer.executeWSLBashCommand(string.Format( "\"ssh {0}@{1} {2}\"", _userName, _serverAddress, mkdirCommand));
-                        if (fileTransfer.processIsFinishedWithSucess(out commandInfo))
+                        string commandInfo = "";
+                        try
                         {
+                            string mkdirCommand = string.Format("mkdir -p {0}", remotePath);
+                            fileTransfer.executeWSLBashCommand(string.Format("\"ssh {0}@{1} {2}\"", _userName, _serverAddress, mkdirCommand));
+                            if (fileTransfer.processIsFinishedWithSucess(out commandInfo))
+                            {
+                                return true;
+                            }
                             return true;
                         }
-                        return true;
+                        catch (System.Exception ex)
+                        {
+                            MessageBox.Show(string.Format("Remote path can not create : {0} ,Error info: {1}",
+                        remotePath, commandInfo), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            return false;
+                        }
+
                     }
-                    catch (System.Exception ex)
-                    {
-                        MessageBox.Show(string.Format("Remote path can not create : {0} ,Error info: {1}",
-                    remotePath, commandInfo), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        return false;
-                    }
-                   
+                    return true;
                 }
-                return true;
+                MessageBox.Show(string.Format("Sftp Client is not build,Please check config !"), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
             }
-            MessageBox.Show(string.Format("Sftp Client is not build,Please check config !"), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            return false;
+            catch (System.Exception ex)
+            {
+                MessageBox.Show(string.Format("Sftp Client occur exception: {0},Please check config !",ex.Message), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
+            }
+            
+            
             
         }
 
@@ -338,7 +348,7 @@ namespace FileSync
                 resizeColumn(3);
                 uploadButton.Value = "Uploading";
             });
-            lock (this)
+            lock (lockObj)
             {
                 Invoke(mi);
             }
@@ -371,7 +381,7 @@ namespace FileSync
             string runInfo = "";
             if (fileTransfer.processIsFinishedWithSucess(out runInfo))
             {
-                lock (this)
+                lock (lockObj)
                 {
                     removeFileItem(e);
                     LogHelper.writeInfoLog(string.Format("Upload File: {0} to {1}, Full Command: {2}", fullFilePath, remoteFilePath, rsyncCommand));
@@ -406,6 +416,7 @@ namespace FileSync
                 }
             }
         }
+        private readonly static object lockObj = new object();
         private SftpClient _sftpClient ;
         private FileTransfer fileTransfer = new FileTransfer();
         private delegate int ActionCall<in T>(T t);
