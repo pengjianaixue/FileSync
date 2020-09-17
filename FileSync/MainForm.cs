@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Renci.SshNet.Sftp;
 using Renci.SshNet;
+using System.Threading;
 
 namespace FileSync
 {
@@ -220,6 +221,10 @@ namespace FileSync
             }
             else
             {
+                if (isInDownload && fileChangeInfo.fullPath == downloadingFile)
+                {
+                    return;
+                }
                 FileChangeGridView.Rows[_fileIndexDic[fileChangeInfo.fullPath]].Cells[1].Value = fileChangeInfo.changeTime;
                 FileChangeGridView.Rows[_fileIndexDic[fileChangeInfo.fullPath]].Cells[2].Value = fileChangeInfo.changeType.ToString();
             }
@@ -282,8 +287,26 @@ namespace FileSync
             this.Invoke(mi);
 
         }
+        private bool checkLocalDirAndCreate(string localFilePath)
+        {   
 
-        private bool checkDirAndCreate(string remoteFilePath)
+            try
+            {
+                if (!Directory.Exists(Path.GetDirectoryName(localFilePath)))
+                {
+                    Directory.CreateDirectory(localFilePath);
+                    return true;
+                }
+                return true;
+            }
+            catch (System.Exception ex)
+            {
+                return false;
+            }
+
+        }
+
+        private bool checRemoteResource(string remoteFilePath, bool isPath = true)
         {
             try
             {
@@ -304,7 +327,11 @@ namespace FileSync
                     string remotePath = Path.GetDirectoryName(remoteFilePath).Replace("\\", "/");
                     bool dirIsExists = _sftpClient.Exists(remotePath);
                     LogHelper.writeInfoLog(string.Format("remote path: {0} is Exists: {1}", remotePath, dirIsExists));
-                    if (!dirIsExists)
+                    if (dirIsExists)
+                    {
+                        return true;
+                    }
+                    if (!dirIsExists && isPath)
                     {
                         string commandInfo = "";
                         try
@@ -319,13 +346,13 @@ namespace FileSync
                         }
                         catch (System.Exception ex)
                         {
-                            MessageBox.Show(string.Format("Remote path can not create : {0} ,Error info: {1}",
+                            MessageBox.Show(string.Format("Remote file/path can not create : {0} ,Error info: {1}",
                         remotePath, commandInfo), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                             return false;
                         }
 
                     }
-                    return true;
+                    return false;
                 }
                 MessageBox.Show(string.Format("Sftp Client is not build,Please check config !"), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
@@ -356,7 +383,57 @@ namespace FileSync
                 Invoke(mi, displayStatus);
             }
         }
+        private void downloadFile(DataGridViewCellEventArgs e)
+        {
+            string fullFilePath = FileChangeGridView.Rows[e.RowIndex].Cells[0].Value.ToString();
+            string[] splitchar = new string[] { ":" };
+            string diskPrefix = "";
+            string purepath = "";
+            string[] pathSplit = fullFilePath.Split(splitchar, StringSplitOptions.RemoveEmptyEntries);
+            if (pathSplit.Length > 1)
+            {
+                diskPrefix = pathSplit[0].ToLower();
+                purepath = pathSplit[1];
+            }
+            else
+            {
+                return;
+            }
+            string pcFilePathToWSLAddress = "/mnt/" + diskPrefix + purepath.Replace("\\", "/");
+            string filePath = fullFilePath.Replace(_monitorPath, "").Replace("\\", "/");
+            string remoteFilePath = _remotePath + "/" + filePath;
+            remoteFilePath = remoteFilePath.Replace("//", "/");
+            if (!checkLocalDirAndCreate(fullFilePath))
+            {
+                return;
+            }
+            if (!checRemoteResource(remoteFilePath, false))
+            {
+                return;
+            }
+            string rsyncCommand = string.Format("rsync -avzr {1}@{2}:{3} {0}", pcFilePathToWSLAddress, _userName, _serverAddress, remoteFilePath);
+            string executeCommand = "\"" + rsyncCommand + "\"";
+            isInDownload = true;
+            downloadingFile = fullFilePath;
+            fileTransfer.executeWSLBashCommand(executeCommand);
+            string runInfo = "";
+            if (fileTransfer.processIsFinishedWithSucess(out runInfo))
+            {
+                lock (UILockObj)
+                {
+                    removeFileItem(e);
+                }
+                LogHelper.writeInfoLog(string.Format("Download File: {1} to {0}, Full Command: {2}", fullFilePath, remoteFilePath, rsyncCommand));
+                LogHelper.writeInfoLog("Download!");
+            }
+            else
+            {
+                MessageBox.Show(string.Format("File: {0} Download Faild! Error info: {1}",
+                    FileChangeGridView.Rows[e.RowIndex].Cells[0].Value.ToString(), runInfo), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            isInDownload = false;
 
+        }
         private void uploadFile(DataGridViewCellEventArgs e)
         {
             updateUploadStatusDisplay(e,"Uploading");
@@ -378,7 +455,7 @@ namespace FileSync
             string filePath = fullFilePath.Replace(_monitorPath, "").Replace("\\", "/");
             string remoteFilePath = _remotePath + "/" + filePath;
             remoteFilePath = remoteFilePath.Replace("//", "/");
-            if (!checkDirAndCreate(remoteFilePath))
+            if (!checRemoteResource(remoteFilePath))
             {
                 updateUploadStatusDisplay(e, "Upload");
                 return;
@@ -393,9 +470,9 @@ namespace FileSync
                 lock (UILockObj)
                 {
                     removeFileItem(e);
-                    LogHelper.writeInfoLog(string.Format("Upload File: {0} to {1}, Full Command: {2}", fullFilePath, remoteFilePath, rsyncCommand));
-                    LogHelper.writeInfoLog("Uploaded!");
                 }
+                LogHelper.writeInfoLog(string.Format("Upload File: {0} to {1}, Full Command: {2}", fullFilePath, remoteFilePath, rsyncCommand));
+                LogHelper.writeInfoLog("Uploaded!");
             }
             else
             {
@@ -422,10 +499,16 @@ namespace FileSync
                 }
                 else if (e.ColumnIndex == 4)
                 {
+                    Task.Factory.StartNew(() => downloadFile(e), TaskCreationOptions.PreferFairness);
+                }
+                else if (e.ColumnIndex == 5)
+                {
                     removeFileItem(e);
                 }
             }
         }
+        private volatile static string downloadingFile = "";
+        private volatile static bool isInDownload = false;
         private readonly static object UILockObj = new object();
         private readonly static object sftpLocker = new object();
         private SftpClient _sftpClient ;
