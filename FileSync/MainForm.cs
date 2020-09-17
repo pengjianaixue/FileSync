@@ -240,11 +240,7 @@ namespace FileSync
         }
         private void clearView()
         {
-            for (int i = 0; i < FileChangeGridView.RowCount; ++i)
-            {
-
-                FileChangeGridView.Rows.RemoveAt(i);
-            }
+            FileChangeGridView.Rows.Clear();
         }
 
         private void configToolStripMenuItem_Click(object sender, EventArgs e)
