@@ -303,7 +303,9 @@ namespace FileSync
                 if (_sftpClient != null && _sftpClient.IsConnected)
                 {
                     string remotePath = Path.GetDirectoryName(remoteFilePath).Replace("\\", "/");
-                    if (!_sftpClient.Exists(remotePath))
+                    bool dirIsExists = _sftpClient.Exists(remotePath);
+                    LogHelper.writeInfoLog(string.Format("remote path: {0} is Exists: {1}", remotePath, dirIsExists));
+                    if (!dirIsExists)
                     {
                         string commandInfo = "";
                         try
@@ -350,6 +352,7 @@ namespace FileSync
             });
             lock (lockObj)
             {
+                LogHelper.writeInfoLog("Uploading!");
                 Invoke(mi);
             }
             string fullFilePath = FileChangeGridView.Rows[e.RowIndex].Cells[0].Value.ToString();
@@ -385,6 +388,7 @@ namespace FileSync
                 {
                     removeFileItem(e);
                     LogHelper.writeInfoLog(string.Format("Upload File: {0} to {1}, Full Command: {2}", fullFilePath, remoteFilePath, rsyncCommand));
+                    LogHelper.writeInfoLog("Uploaded!");
                 }
                 
             }
