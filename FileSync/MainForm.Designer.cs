@@ -32,6 +32,12 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.globalFlowLayoutPanel = new System.Windows.Forms.FlowLayoutPanel();
             this.FileChangeGridView = new System.Windows.Forms.DataGridView();
+            this.FileName = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ChangeTime = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ChangeType = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.UpLoad = new System.Windows.Forms.DataGridViewButtonColumn();
+            this.Downlaod = new System.Windows.Forms.DataGridViewButtonColumn();
+            this.igroneThisTime = new System.Windows.Forms.DataGridViewButtonColumn();
             this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.configToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -43,12 +49,6 @@
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.statusStrip_infoBar = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel_status = new System.Windows.Forms.ToolStripStatusLabel();
-            this.FileName = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.ChangeTime = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.ChangeType = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.UpLoad = new System.Windows.Forms.DataGridViewButtonColumn();
-            this.Downlaod = new System.Windows.Forms.DataGridViewButtonColumn();
-            this.igroneThisTime = new System.Windows.Forms.DataGridViewButtonColumn();
             this.globalFlowLayoutPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.FileChangeGridView)).BeginInit();
             this.menuStrip1.SuspendLayout();
@@ -87,82 +87,6 @@
             this.FileChangeGridView.Size = new System.Drawing.Size(1073, 376);
             this.FileChangeGridView.TabIndex = 0;
             this.FileChangeGridView.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.FileChangeGridView_CellContentClick);
-            // 
-            // menuStrip1
-            // 
-            this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.configToolStripMenuItem,
-            this.syncFolderToolStripMenuItem,
-            this.resetToolStripMenuItem,
-            this.pauseToolStripMenuItem});
-            this.menuStrip1.Location = new System.Drawing.Point(0, 0);
-            this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(1079, 24);
-            this.menuStrip1.TabIndex = 2;
-            this.menuStrip1.Text = "menuStrip1";
-            // 
-            // configToolStripMenuItem
-            // 
-            this.configToolStripMenuItem.Name = "configToolStripMenuItem";
-            this.configToolStripMenuItem.Size = new System.Drawing.Size(55, 20);
-            this.configToolStripMenuItem.Text = "Config";
-            this.configToolStripMenuItem.Click += new System.EventHandler(this.configToolStripMenuItem_Click);
-            // 
-            // syncFolderToolStripMenuItem
-            // 
-            this.syncFolderToolStripMenuItem.Name = "syncFolderToolStripMenuItem";
-            this.syncFolderToolStripMenuItem.Size = new System.Drawing.Size(78, 20);
-            this.syncFolderToolStripMenuItem.Text = "Sync folder";
-            // 
-            // resetToolStripMenuItem
-            // 
-            this.resetToolStripMenuItem.Name = "resetToolStripMenuItem";
-            this.resetToolStripMenuItem.Size = new System.Drawing.Size(47, 20);
-            this.resetToolStripMenuItem.Text = "Reset";
-            this.resetToolStripMenuItem.Click += new System.EventHandler(this.resetToolStripMenuItem_Click);
-            // 
-            // pauseToolStripMenuItem
-            // 
-            this.pauseToolStripMenuItem.Name = "pauseToolStripMenuItem";
-            this.pauseToolStripMenuItem.Size = new System.Drawing.Size(96, 20);
-            this.pauseToolStripMenuItem.Text = "Pause Monitor";
-            this.pauseToolStripMenuItem.Click += new System.EventHandler(this.pauseToolStripMenuItem_Click);
-            // 
-            // notifyIcon_background
-            // 
-            this.notifyIcon_background.ContextMenuStrip = this.contextMenuStrip_backgroud;
-            this.notifyIcon_background.Icon = ((System.Drawing.Icon)(resources.GetObject("notifyIcon_background.Icon")));
-            this.notifyIcon_background.Text = "notifyIcon_backgroud";
-            this.notifyIcon_background.Visible = true;
-            this.notifyIcon_background.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.notifyIcon_background_MouseDoubleClick);
-            // 
-            // contextMenuStrip_backgroud
-            // 
-            this.contextMenuStrip_backgroud.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.exitToolStripMenuItem});
-            this.contextMenuStrip_backgroud.Name = "contextMenuStrip_backgroud";
-            this.contextMenuStrip_backgroud.Size = new System.Drawing.Size(93, 26);
-            // 
-            // exitToolStripMenuItem
-            // 
-            this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(92, 22);
-            this.exitToolStripMenuItem.Text = "Exit";
-            this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
-            // 
-            // statusStrip_infoBar
-            // 
-            this.statusStrip_infoBar.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripStatusLabel_status});
-            this.statusStrip_infoBar.Location = new System.Drawing.Point(0, 397);
-            this.statusStrip_infoBar.Name = "statusStrip_infoBar";
-            this.statusStrip_infoBar.Size = new System.Drawing.Size(1079, 22);
-            this.statusStrip_infoBar.TabIndex = 3;
-            // 
-            // toolStripStatusLabel_status
-            // 
-            this.toolStripStatusLabel_status.Name = "toolStripStatusLabel_status";
-            this.toolStripStatusLabel_status.Size = new System.Drawing.Size(0, 17);
             // 
             // FileName
             // 
@@ -214,6 +138,82 @@
             this.igroneThisTime.ToolTipText = "Ignore this file change";
             this.igroneThisTime.UseColumnTextForButtonValue = true;
             this.igroneThisTime.Width = 43;
+            // 
+            // menuStrip1
+            // 
+            this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.configToolStripMenuItem,
+            this.syncFolderToolStripMenuItem,
+            this.resetToolStripMenuItem,
+            this.pauseToolStripMenuItem});
+            this.menuStrip1.Location = new System.Drawing.Point(0, 0);
+            this.menuStrip1.Name = "menuStrip1";
+            this.menuStrip1.Size = new System.Drawing.Size(1079, 24);
+            this.menuStrip1.TabIndex = 2;
+            this.menuStrip1.Text = "menuStrip1";
+            // 
+            // configToolStripMenuItem
+            // 
+            this.configToolStripMenuItem.Name = "configToolStripMenuItem";
+            this.configToolStripMenuItem.Size = new System.Drawing.Size(55, 20);
+            this.configToolStripMenuItem.Text = "Config";
+            this.configToolStripMenuItem.Click += new System.EventHandler(this.configToolStripMenuItem_Click);
+            // 
+            // syncFolderToolStripMenuItem
+            // 
+            this.syncFolderToolStripMenuItem.Name = "syncFolderToolStripMenuItem";
+            this.syncFolderToolStripMenuItem.Size = new System.Drawing.Size(78, 20);
+            this.syncFolderToolStripMenuItem.Text = "Sync folder";
+            // 
+            // resetToolStripMenuItem
+            // 
+            this.resetToolStripMenuItem.Name = "resetToolStripMenuItem";
+            this.resetToolStripMenuItem.Size = new System.Drawing.Size(47, 20);
+            this.resetToolStripMenuItem.Text = "Reset";
+            this.resetToolStripMenuItem.Click += new System.EventHandler(this.resetToolStripMenuItem_Click);
+            // 
+            // pauseToolStripMenuItem
+            // 
+            this.pauseToolStripMenuItem.Name = "pauseToolStripMenuItem";
+            this.pauseToolStripMenuItem.Size = new System.Drawing.Size(96, 20);
+            this.pauseToolStripMenuItem.Text = "Pause Monitor";
+            this.pauseToolStripMenuItem.Click += new System.EventHandler(this.pauseToolStripMenuItem_Click);
+            // 
+            // notifyIcon_background
+            // 
+            this.notifyIcon_background.ContextMenuStrip = this.contextMenuStrip_backgroud;
+            this.notifyIcon_background.Icon = ((System.Drawing.Icon)(resources.GetObject("notifyIcon_background.Icon")));
+            this.notifyIcon_background.Text = "File Sync";
+            this.notifyIcon_background.Visible = true;
+            this.notifyIcon_background.MouseClick += new System.Windows.Forms.MouseEventHandler(this.notifyIcon_background_MouseClick);
+            // 
+            // contextMenuStrip_backgroud
+            // 
+            this.contextMenuStrip_backgroud.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.exitToolStripMenuItem});
+            this.contextMenuStrip_backgroud.Name = "contextMenuStrip_backgroud";
+            this.contextMenuStrip_backgroud.Size = new System.Drawing.Size(93, 26);
+            // 
+            // exitToolStripMenuItem
+            // 
+            this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(92, 22);
+            this.exitToolStripMenuItem.Text = "Exit";
+            this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
+            // 
+            // statusStrip_infoBar
+            // 
+            this.statusStrip_infoBar.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripStatusLabel_status});
+            this.statusStrip_infoBar.Location = new System.Drawing.Point(0, 397);
+            this.statusStrip_infoBar.Name = "statusStrip_infoBar";
+            this.statusStrip_infoBar.Size = new System.Drawing.Size(1079, 22);
+            this.statusStrip_infoBar.TabIndex = 3;
+            // 
+            // toolStripStatusLabel_status
+            // 
+            this.toolStripStatusLabel_status.Name = "toolStripStatusLabel_status";
+            this.toolStripStatusLabel_status.Size = new System.Drawing.Size(0, 17);
             // 
             // MainForm
             // 

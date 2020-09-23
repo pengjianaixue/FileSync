@@ -233,12 +233,6 @@ namespace FileSync
             return;
 
         }
-        private void notifyIcon_background_MouseDoubleClick(object sender, MouseEventArgs e)
-        {
-            this.Visible = true;
-            this.WindowState = FormWindowState.Normal;
-            this.notifyIcon_background.Visible = true;
-        }
         private void FileWachter_MonitorFileChanged(object sender, FileChangeInfo fileChangeInfo)
         {
             updateFileList(ref fileChangeInfo);
@@ -551,6 +545,13 @@ namespace FileSync
                 isPause = false;
             }
 
+        }
+
+        private void notifyIcon_background_MouseClick(object sender, MouseEventArgs e)
+        {
+            this.Visible = true;
+            this.WindowState = FormWindowState.Normal;
+            this.notifyIcon_background.Visible = true;
         }
     }
 }
