@@ -40,9 +40,15 @@ namespace FileSync
             {
                 MessageBox.Show("WSL bash.exe can not find in the PC!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-
+            _sftpClient.ErrorOccurred += _sftpClient_ErrorOccurred;
 
         }
+
+        private void _sftpClient_ErrorOccurred(object sender, Renci.SshNet.Common.ExceptionEventArgs e)
+        {
+            MessageBox.Show(string.Format("SFTP client Error: {0}",e.Exception.Message) , "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+
         private void findWSLBash()
         {
             wlsBashPath = Environment.CurrentDirectory+ "\\bash.exe";
