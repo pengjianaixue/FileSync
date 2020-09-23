@@ -351,8 +351,7 @@ namespace FileSync
                         }
                         catch (System.Exception ex)
                         {
-                            MessageBox.Show(string.Format("Remote file/path can not create : {0} ,Error info: {1}",
-                        remotePath, commandInfo), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            MessageBox.Show($"Remote file/path can not create : {remotePath} ,Error info: {commandInfo}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                             return false;
                         }
 
