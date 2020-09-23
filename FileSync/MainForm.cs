@@ -61,6 +61,7 @@ namespace FileSync
 	            if (_serverAddress.Length > 0 && _userName.Length > 0 && _userPassWd.Length > 0)
                 {
                     _sftpClient = new SftpClient(_serverAddress, _userName, _userPassWd);
+                    _sftpClient.KeepAliveInterval = new TimeSpan(0, 0, 30);
                     _sftpClient.Connect();
                 }
             }
@@ -284,7 +285,10 @@ namespace FileSync
                 FileChangeGridView.Rows.RemoveAt(e.RowIndex);
             }
             );
-            this.Invoke(mi);
+            lock (UILockObj)
+            {
+                this.Invoke(mi);
+            }
 
         }
         private bool checkLocalDirAndCreate(string localFilePath)
@@ -373,7 +377,7 @@ namespace FileSync
             Action<string> mi = new Action<string>((status) =>
             {
                 DataGridViewButtonCell uploadButton = (DataGridViewButtonCell)FileChangeGridView.Rows[e.RowIndex].Cells[3];//.Value = "Uploading";
-        uploadButton.UseColumnTextForButtonValue = false;
+                uploadButton.UseColumnTextForButtonValue = false;
                 resizeColumn(3);
                 uploadButton.Value = status;
             });
@@ -419,10 +423,7 @@ namespace FileSync
             string runInfo = "";
             if (fileTransfer.processIsFinishedWithSucess(out runInfo))
             {
-                lock (UILockObj)
-                {
-                    removeFileItem(e);
-                }
+                removeFileItem(e);
                 LogHelper.writeInfoLog(string.Format("Download File: {1} to {0}, Full Command: {2}", fullFilePath, remoteFilePath, rsyncCommand));
                 LogHelper.writeInfoLog("Download!");
             }
@@ -467,10 +468,7 @@ namespace FileSync
             string runInfo = "";
             if (fileTransfer.processIsFinishedWithSucess(out runInfo))
             {
-                lock (UILockObj)
-                {
-                    removeFileItem(e);
-                }
+                removeFileItem(e);
                 LogHelper.writeInfoLog(string.Format("Upload File: {0} to {1}, Full Command: {2}", fullFilePath, remoteFilePath, rsyncCommand));
                 LogHelper.writeInfoLog("Uploaded!");
             }
