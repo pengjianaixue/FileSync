@@ -67,7 +67,7 @@ namespace FileSync
 	            if (_serverAddress.Length > 0 && _userName.Length > 0 && _userPassWd.Length > 0)
                 {
                     _sftpClient = new SftpClient(_serverAddress, _userName, _userPassWd);
-                    _sftpClient.KeepAliveInterval = new TimeSpan(0, 0, 30);
+                    //_sftpClient.KeepAliveInterval = new TimeSpan(0, 0, 30);
                     _sftpClient.Connect();
                     _sftpClient.ErrorOccurred += _sftpClient_ErrorOccurred;
                 }
