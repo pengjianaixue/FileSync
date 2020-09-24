@@ -33,26 +33,27 @@ namespace FileSync
 
             if (process.HasExited)
             {
-                if (isError)
+                if (!isError && process.ExitCode == 0)
                 {
-                    info = _errorInfo;
-                    return false;
+                    info = _stdoutInfo;
+                    return true;
                 }
-                info = _stdoutInfo;
-                return true;
+                info = _errorInfo;
+                return false;
+                
             }
             else
             {
                 process.WaitForExit(10000);
                 if (process.HasExited)
                 {
-                    if (isError)
+                    if (!isError && process.ExitCode == 0)
                     {
-                        info = _errorInfo;
-                        return false;
+                        info = _stdoutInfo;
+                        return true;
                     }
-                    info = _stdoutInfo;
-                    return true;
+                    info = _errorInfo;
+                    return false;
                 }
                 else
                 {
