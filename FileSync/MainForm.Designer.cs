@@ -62,16 +62,16 @@
             this.globalFlowLayoutPanel.AutoSize = true;
             this.globalFlowLayoutPanel.Controls.Add(this.FileChangeGridView);
             this.globalFlowLayoutPanel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.globalFlowLayoutPanel.Location = new System.Drawing.Point(0, 25);
+            this.globalFlowLayoutPanel.Location = new System.Drawing.Point(0, 24);
             this.globalFlowLayoutPanel.Name = "globalFlowLayoutPanel";
-            this.globalFlowLayoutPanel.Size = new System.Drawing.Size(1082, 377);
+            this.globalFlowLayoutPanel.Size = new System.Drawing.Size(1082, 378);
             this.globalFlowLayoutPanel.TabIndex = 1;
             // 
             // FileChangeGridView
             // 
             this.FileChangeGridView.AllowUserToAddRows = false;
             this.FileChangeGridView.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
-            this.FileChangeGridView.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllHeaders;
+            this.FileChangeGridView.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCells;
             this.FileChangeGridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.FileChangeGridView.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.FileName,
@@ -118,7 +118,7 @@
             this.UpLoad.Text = "UpLoad";
             this.UpLoad.ToolTipText = "UpLoad this file to server";
             this.UpLoad.UseColumnTextForButtonValue = true;
-            this.UpLoad.Width = 47;
+            this.UpLoad.Width = 51;
             // 
             // Downlaod
             // 
@@ -128,7 +128,7 @@
             this.Downlaod.Text = "Downlaod";
             this.Downlaod.ToolTipText = "Downlaod this file from server";
             this.Downlaod.UseColumnTextForButtonValue = true;
-            this.Downlaod.Width = 59;
+            this.Downlaod.Width = 61;
             // 
             // igroneThisTime
             // 
@@ -138,7 +138,7 @@
             this.igroneThisTime.Text = "Ignore";
             this.igroneThisTime.ToolTipText = "Ignore this file change";
             this.igroneThisTime.UseColumnTextForButtonValue = true;
-            this.igroneThisTime.Width = 47;
+            this.igroneThisTime.Width = 43;
             // 
             // menuStrip1
             // 
@@ -149,34 +149,34 @@
             this.pauseToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(1082, 25);
+            this.menuStrip1.Size = new System.Drawing.Size(1082, 24);
             this.menuStrip1.TabIndex = 2;
             this.menuStrip1.Text = "menuStrip1";
             // 
             // configToolStripMenuItem
             // 
             this.configToolStripMenuItem.Name = "configToolStripMenuItem";
-            this.configToolStripMenuItem.Size = new System.Drawing.Size(58, 21);
+            this.configToolStripMenuItem.Size = new System.Drawing.Size(55, 20);
             this.configToolStripMenuItem.Text = "Config";
             this.configToolStripMenuItem.Click += new System.EventHandler(this.configToolStripMenuItem_Click);
             // 
             // syncFolderToolStripMenuItem
             // 
             this.syncFolderToolStripMenuItem.Name = "syncFolderToolStripMenuItem";
-            this.syncFolderToolStripMenuItem.Size = new System.Drawing.Size(85, 21);
+            this.syncFolderToolStripMenuItem.Size = new System.Drawing.Size(78, 20);
             this.syncFolderToolStripMenuItem.Text = "Sync folder";
             // 
             // resetToolStripMenuItem
             // 
             this.resetToolStripMenuItem.Name = "resetToolStripMenuItem";
-            this.resetToolStripMenuItem.Size = new System.Drawing.Size(52, 21);
+            this.resetToolStripMenuItem.Size = new System.Drawing.Size(47, 20);
             this.resetToolStripMenuItem.Text = "Reset";
             this.resetToolStripMenuItem.Click += new System.EventHandler(this.resetToolStripMenuItem_Click);
             // 
             // pauseToolStripMenuItem
             // 
             this.pauseToolStripMenuItem.Name = "pauseToolStripMenuItem";
-            this.pauseToolStripMenuItem.Size = new System.Drawing.Size(105, 21);
+            this.pauseToolStripMenuItem.Size = new System.Drawing.Size(96, 20);
             this.pauseToolStripMenuItem.Text = "Pause Monitor";
             this.pauseToolStripMenuItem.Click += new System.EventHandler(this.pauseToolStripMenuItem_Click);
             // 
@@ -193,12 +193,12 @@
             this.contextMenuStrip_backgroud.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.exitToolStripMenuItem});
             this.contextMenuStrip_backgroud.Name = "contextMenuStrip_backgroud";
-            this.contextMenuStrip_backgroud.Size = new System.Drawing.Size(97, 26);
+            this.contextMenuStrip_backgroud.Size = new System.Drawing.Size(93, 26);
             // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(96, 22);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(92, 22);
             this.exitToolStripMenuItem.Text = "Exit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 

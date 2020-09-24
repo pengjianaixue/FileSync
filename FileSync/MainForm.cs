@@ -555,9 +555,12 @@ namespace FileSync
 
         private void notifyIcon_background_MouseClick(object sender, MouseEventArgs e)
         {
-            this.Visible = true;
-            this.WindowState = FormWindowState.Normal;
-            this.notifyIcon_background.Visible = true;
+            if (e.Button == MouseButtons.Left)
+            {
+                this.Visible = true;
+                this.WindowState = FormWindowState.Normal;
+                this.notifyIcon_background.Visible = true;
+            }
         }
     }
 }
