@@ -281,9 +281,12 @@ namespace FileSync
         {
             MethodInvoker mi = new MethodInvoker(() =>
             {
-                string fileName = (string)FileChangeGridView.Rows[e.RowIndex].Cells[0].Value;
-                _fileIndexDic.Remove(fileName);
-                FileChangeGridView.Rows.RemoveAt(e.RowIndex);
+                if (e.RowIndex >= 0)
+                {
+                    string fileName = (string)FileChangeGridView.Rows[e.RowIndex].Cells[0].Value;
+                    _fileIndexDic.Remove(fileName);
+                    FileChangeGridView.Rows.RemoveAt(e.RowIndex);
+                }
             }
             );
             lock (UILockObj)
