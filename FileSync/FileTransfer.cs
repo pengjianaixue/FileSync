@@ -17,7 +17,7 @@ namespace FileSync
         public string stdoutInfo;
         public string stderrorInfo;
         public int processId;
-        public int isUsed;
+        public volatile int isUsed;
 
     }
     class FileTransfer
@@ -184,15 +184,8 @@ namespace FileSync
             }
         }
         public string programPath { get; set; }
-        private bool isFinished = false;
-        private bool isError = false;
-        private string _errorInfo = "";
-        private string _stdoutInfo = "";
         private Process process = new Process();
         private List<ProcessBundle> processesList ;
-        private bool isFindWSLBash = false;
-        private string wlsBashPath = "";
-        private volatile int processUsedPostion =0;
         private int _processNum;
     }
 }

@@ -307,7 +307,7 @@ namespace FileSync
                 }
                 return true;
             }
-            catch (System.Exception ex)
+            catch (System.Exception)
             {
                 return false;
             }
@@ -354,7 +354,7 @@ namespace FileSync
                         }
                         catch (System.Exception ex)
                         {
-                            MessageBox.Show($"Remote file/path can not create : {remotePath} ,Error info: {commandInfo}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            MessageBox.Show($"Remote file/path can not create : {remotePath} ,Error info: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                             return false;
                         }
 
