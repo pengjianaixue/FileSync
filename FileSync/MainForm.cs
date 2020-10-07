@@ -283,6 +283,10 @@ namespace FileSync
             {
                 if (e.RowIndex >= 0)
                 {
+                    if (e.RowIndex >= FileChangeGridView.RowCount)
+                    {
+                        return;
+                    }
                     string fileName = (string)FileChangeGridView.Rows[e.RowIndex].Cells[0].Value;
                     _fileIndexDic.Remove(fileName);
                     FileChangeGridView.Rows.RemoveAt(e.RowIndex);
