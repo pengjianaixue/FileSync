@@ -5,89 +5,183 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 
 namespace FileSync
 {
+    class ProcessBundle
+    {
+        public Process process = new Process();
+        public bool isExit;
+        public bool isError;
+        public string stdoutInfo;
+        public string stderrorInfo;
+        public int processId;
+        public int isUsed;
+
+    }
     class FileTransfer
     {
-        public FileTransfer()
+        public FileTransfer(int processNum)
         {
-            
-            process.StartInfo.UseShellExecute = false;
-            process.StartInfo.CreateNoWindow = true;
-            process.StartInfo.RedirectStandardOutput = true;
-            process.StartInfo.RedirectStandardError = true;
-            process.ErrorDataReceived += Process_ErrorDataReceived;
-            process.OutputDataReceived += Process_OutputDataReceived;
-            process.Exited += (sender, e) => { isFinished = true; };
 
+            _processNum = processNum;
+            processesList = new List<ProcessBundle>(_processNum);
+            for (int i = 0; i < _processNum; i++)
+            {
+                processesList.Add(new ProcessBundle());
+            }
+            
+            int processCounter = 0;
+            foreach (var item in processesList)
+            {
+                process = new Process();
+                item.processId = processCounter++;
+                item.isUsed = 0;
+                item.process.StartInfo.UseShellExecute = false;
+                item.process.StartInfo.CreateNoWindow = true;
+                item.process.StartInfo.RedirectStandardOutput = true;
+                item.process.StartInfo.RedirectStandardError = true;
+                item.process.ErrorDataReceived += Process_ErrorDataReceived;
+                item.process.OutputDataReceived += Process_OutputDataReceived;
+                item.process.Exited += Process_Exited;
+               
+            }
+        }
+
+        private void Process_Exited(object sender, EventArgs e)
+        {
+            for (  int i = 0; i < processesList.Count; i++)
+            {
+                if (processesList[i].process == sender)
+                {
+                    processesList[i].isExit = true;
+                    return;
+                }
+                
+            }
         }
 
         private void Process_OutputDataReceived(object sender, DataReceivedEventArgs e)
         {
-            _stdoutInfo += e.Data;
+            for (int i = 0; i < processesList.Count; i++)
+            {
+                if (processesList[i].process == sender)
+                {
+                    processesList[i].stdoutInfo  += e.Data;
+                    return;
+                }
+            }
         }       
 
-        public bool processIsFinishedWithSucess(out string info)
+        public bool processIsFinishedWithSucess(int processId, out string info)
         {
-
-            if (process.HasExited)
+            if (processId >= _processNum)
             {
-                if (!isError && process.ExitCode == 0)
+                info = "processId is bigger than the _processNum !";
+                return false;
+            }
+            ProcessBundle processBundle = null;
+            foreach (var item in processesList)
+            {
+                if (item.processId == processId)
                 {
-                    info = _stdoutInfo;
+                    processBundle = item;
+                }
+            }
+            if (processBundle == null)
+            {
+                info = " can not find the processId for current process list";
+                return false;
+            }
+            if (processBundle.process.HasExited)
+            {
+                if (!processBundle.isError && 
+                    processBundle.process.ExitCode == 0)
+                {
+
+                    Interlocked.Exchange(ref processBundle.isUsed, 0);
+                    info = processBundle.stdoutInfo;
                     return true;
                 }
-                info = _errorInfo;
+                info = processBundle.stderrorInfo;
+                Interlocked.Exchange(ref processBundle.isUsed, 0);
                 return false;
-                
             }
             else
             {
-                process.WaitForExit(10000);
-                if (process.HasExited)
+                processBundle.process.WaitForExit(20000);
+                if (processBundle.process.HasExited)
                 {
-                    if (!isError && process.ExitCode == 0)
+                    if (!processBundle.isError &&
+                        processBundle.process.ExitCode == 0)
                     {
-                        info = _stdoutInfo;
+                        Interlocked.Exchange(ref processBundle.isUsed, 0);
+                        info = processBundle.stdoutInfo;
                         return true;
                     }
-                    info = _errorInfo;
+                    Interlocked.Exchange(ref processBundle.isUsed, 0);
+                    info = processBundle.stderrorInfo;
                     return false;
                 }
                 else
                 {
+                    processBundle.process.Kill();
+                    Interlocked.Exchange(ref processBundle.isUsed, 0);
                     info = "Programm is not finished";
                     return false;
                 }
             }
         }
 
-        private void runCommand(string command)
+        private bool findProcessToRunCmd(string command, out int processId)
         {
-
-            process.StartInfo.FileName = programPath;
-            LogHelper.writeInfoLog(string.Format("send rsync command: {0}", command));
-            process.StartInfo.Arguments = "-c " + command;
-            process.Start();
-            
+            foreach (var item in processesList)
+            {
+                if (item.isUsed != 1)
+                {
+                    item.process.StartInfo.FileName = programPath;
+                    item.process.StartInfo.Arguments = "-c " + command;
+                    LogHelper.writeInfoLog(string.Format("send command: {0}", command));
+                    item.process.Start();
+                    Interlocked.Exchange(ref item.isUsed, 1);
+                    processId =  item.processId;
+                    return true;
+                }
+            }
+            processId = -1;
+            return false;
         }
 
-        public bool executeWSLBashCommand(string command)
+        private int runCommand(string command)
+        {
+            int processId = -1;
+            while (!findProcessToRunCmd(command,out processId))
+            {
+                Thread.Sleep(100);
+            }
+            return processId;
+
+        }
+
+        public int executeWSLBashCommand(string command)
         {
 
-            runCommand(command);
-            return true;
+            return runCommand(command);
 
         }
 
         private void Process_ErrorDataReceived(object sender, DataReceivedEventArgs e)
         {
-            if (!isError)
+            for (int i = 0; i < processesList.Count; i++)
             {
-                isError = true;
+                if (processesList[i].process == sender)
+                {
+                    processesList[i].stderrorInfo += e.Data;
+                    processesList[i].isError = true;
+                    return;
+                }
             }
-            _errorInfo += e.Data;
         }
         public string programPath { get; set; }
         private bool isFinished = false;
@@ -95,7 +189,10 @@ namespace FileSync
         private string _errorInfo = "";
         private string _stdoutInfo = "";
         private Process process = new Process();
+        private List<ProcessBundle> processesList ;
         private bool isFindWSLBash = false;
         private string wlsBashPath = "";
+        private volatile int processUsedPostion =0;
+        private int _processNum;
     }
 }
