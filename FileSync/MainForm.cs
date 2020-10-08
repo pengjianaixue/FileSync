@@ -285,6 +285,7 @@ namespace FileSync
                 {
                     if (e.RowIndex >= FileChangeGridView.RowCount)
                     {
+                        MessageBox.Show($"removeFileItem Error: the rowIndex {e.RowIndex} is bigger than RowCount" , "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         return;
                     }
                     string fileName = (string)FileChangeGridView.Rows[e.RowIndex].Cells[0].Value;
