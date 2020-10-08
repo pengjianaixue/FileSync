@@ -283,6 +283,11 @@ namespace FileSync
             {
                 if (e.RowIndex >= 0)
                 {
+                    if (e.RowIndex >= FileChangeGridView.RowCount)
+                    {
+                        MessageBox.Show($"removeFileItem Error: the rowIndex {e.RowIndex} is bigger than RowCount" , "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
                     string fileName = (string)FileChangeGridView.Rows[e.RowIndex].Cells[0].Value;
                     _fileIndexDic.Remove(fileName);
                     FileChangeGridView.Rows.RemoveAt(e.RowIndex);
@@ -307,7 +312,7 @@ namespace FileSync
                 }
                 return true;
             }
-            catch (System.Exception ex)
+            catch (System.Exception)
             {
                 return false;
             }
@@ -345,8 +350,8 @@ namespace FileSync
                         try
                         {
                             string mkdirCommand = string.Format("mkdir -p {0}", remotePath);
-                            fileTransfer.executeWSLBashCommand(string.Format("\"ssh {0}@{1} {2}\"", _userName, _serverAddress, mkdirCommand));
-                            if (fileTransfer.processIsFinishedWithSucess(out commandInfo))
+                            int processId =  fileTransfer.executeWSLBashCommand(string.Format("\"ssh {0}@{1} {2}\"", _userName, _serverAddress, mkdirCommand));
+                            if (fileTransfer.processIsFinishedWithSucess(processId,out commandInfo))
                             {
                                 return true;
                             }
@@ -354,7 +359,7 @@ namespace FileSync
                         }
                         catch (System.Exception ex)
                         {
-                            MessageBox.Show($"Remote file/path can not create : {remotePath} ,Error info: {commandInfo}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            MessageBox.Show($"Remote file/path can not create : {remotePath} ,Error info: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                             return false;
                         }
 
@@ -422,9 +427,9 @@ namespace FileSync
             string executeCommand = "\"" + rsyncCommand + "\"";
             isInDownload = true;
             downloadingFile = fullFilePath;
-            fileTransfer.executeWSLBashCommand(executeCommand);
+            int processId = fileTransfer.executeWSLBashCommand(executeCommand);
             string runInfo = "";
-            if (fileTransfer.processIsFinishedWithSucess(out runInfo))
+            if (fileTransfer.processIsFinishedWithSucess(processId,out runInfo))
             {
                 removeFileItem(e);
                 LogHelper.writeInfoLog(string.Format("Download File: {1} to {0}, Full Command: {2}", fullFilePath, remoteFilePath, rsyncCommand));
@@ -464,12 +469,11 @@ namespace FileSync
                 updateUploadStatusDisplay(e, "Upload");
                 return;
             }
-            string rsyncCommand = string.Format("rsync -avzr {0} {1}@{2}:{3}", pcFilePathToWSLAddress, _userName, _serverAddress, remoteFilePath);
-            //string rsyncCommand = string.Format("rsync -avzr {0} {1}:{2}", pcFilePathToWSLAddress, _serverAddress, remoteFilePath);
+            string rsyncCommand = $"rsync -avzr {pcFilePathToWSLAddress} {_userName}@{_serverAddress}:{remoteFilePath}";
             string executeCommand = "\"" + rsyncCommand + "\"";
-            fileTransfer.executeWSLBashCommand(executeCommand);
             string runInfo = "";
-            if (fileTransfer.processIsFinishedWithSucess(out runInfo))
+            int processId =  fileTransfer.executeWSLBashCommand(executeCommand);
+            if (fileTransfer.processIsFinishedWithSucess(processId, out runInfo))
             {
                 removeFileItem(e);
                 LogHelper.writeInfoLog(string.Format("Upload File: {0} to {1}, Full Command: {2}", fullFilePath, remoteFilePath, rsyncCommand));
@@ -513,7 +517,7 @@ namespace FileSync
         private readonly static object UILockObj = new object();
         private readonly static object sftpLocker = new object();
         private SftpClient _sftpClient ;
-        private FileTransfer fileTransfer = new FileTransfer();
+        private FileTransfer fileTransfer = new FileTransfer(4);
         private delegate int ActionCall<in T>(T t);
         private string _configFileName = "";
         private string _monitorPath = "";
