@@ -11,6 +11,7 @@ using System.Windows.Forms;
 using Renci.SshNet.Sftp;
 using Renci.SshNet;
 using System.Threading;
+using Renci;
 
 namespace FileSync
 {
@@ -47,6 +48,20 @@ namespace FileSync
         private void _sftpClient_ErrorOccurred(object sender, Renci.SshNet.Common.ExceptionEventArgs e)
         {
             MessageBox.Show(string.Format("SFTP client Error: {0}",e.Exception.Message) , "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            try
+            {
+                if (!isReConnectError)
+                {
+                    _sftpClient.Connect();
+                    isReConnectError = false;
+                }
+                
+            }
+            catch (System.Exception ex)
+            {
+                MessageBox.Show(string.Format("SFTP client re-connect error: {0}", ex.Message), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                isReConnectError = true;
+            }
         }
 
         private void findWSLBash()
@@ -59,7 +74,7 @@ namespace FileSync
             }
         }
 
-        private void sftpConnect()
+        private void sshChannelCreate()
         {
             
             try
@@ -67,7 +82,6 @@ namespace FileSync
 	            if (_serverAddress.Length > 0 && _userName.Length > 0 && _userPassWd.Length > 0)
                 {
                     _sftpClient = new SftpClient(_serverAddress, _userName, _userPassWd);
-                    //_sftpClient.KeepAliveInterval = new TimeSpan(0, 0, 30);
                     _sftpClient.Connect();
                     _sftpClient.ErrorOccurred += _sftpClient_ErrorOccurred;
                 }
@@ -76,9 +90,9 @@ namespace FileSync
             {
                 MessageBox.Show(string.Format("sftp connect is failed Error info: {0}, pelase check connect config!", ex.Message), 
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
             }
         }
-
         private void configLoad()
         {
 
@@ -277,7 +291,7 @@ namespace FileSync
             }
         }
 
-        private void removeFileItem(DataGridViewCellEventArgs e)
+        private void removeFileItem(DataGridViewCellEventArgs e, string specialFileName)
         {
             MethodInvoker mi = new MethodInvoker(() =>
             {
@@ -288,15 +302,31 @@ namespace FileSync
                         MessageBox.Show($"removeFileItem Error: the rowIndex {e.RowIndex} is bigger than RowCount" , "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         return;
                     }
+                    _fileIndexDic.Remove(specialFileName);
                     string fileName = (string)FileChangeGridView.Rows[e.RowIndex].Cells[0].Value;
-                    _fileIndexDic.Remove(fileName);
-                    FileChangeGridView.Rows.RemoveAt(e.RowIndex);
+                    if (specialFileName == fileName)
+                    {
+                        FileChangeGridView.Rows.RemoveAt(e.RowIndex);
+                    }
+                    else
+                    {
+                        foreach (DataGridViewRow item in FileChangeGridView.Rows)
+                        {
+                            
+                            fileName = (string)item.Cells[0].Value;
+                            if (fileName == specialFileName)
+                            {
+                                FileChangeGridView.Rows.Remove(item);
+                                break;
+                            }
+                        }
+                    }
                 }
             }
             );
             lock (UILockObj)
             {
-                this.Invoke(mi);
+                FileChangeGridView.Invoke(mi);
             }
 
         }
@@ -327,13 +357,14 @@ namespace FileSync
                 {
                     if (connectInfoIsChanged || _sftpClient == null)
                     {
-                        sftpConnect();
+                        sshChannelCreate();
                         connectInfoIsChanged = false;
                     }
                 }
                 if (_sftpClient != null && !_sftpClient.IsConnected)
                 {
                     _sftpClient.Connect();
+                    isReConnectError = false;
                 }
                 if (_sftpClient != null && _sftpClient.IsConnected)
                 {
@@ -346,15 +377,9 @@ namespace FileSync
                     }
                     if (!dirIsExists && isPath)
                     {
-                        string commandInfo = "";
                         try
                         {
-                            string mkdirCommand = string.Format("mkdir -p {0}", remotePath);
-                            int processId =  fileTransfer.executeWSLBashCommand(string.Format("\"ssh {0}@{1} {2}\"", _userName, _serverAddress, mkdirCommand));
-                            if (fileTransfer.processIsFinishedWithSucess(processId,out commandInfo))
-                            {
-                                return true;
-                            }
+                            _sftpClient.CreateDirectory(remotePath);
                             return true;
                         }
                         catch (System.Exception ex)
@@ -374,9 +399,6 @@ namespace FileSync
                 MessageBox.Show(string.Format("Sftp Client occur exception: {0},Please check config !",ex.Message), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
             }
-            
-            
-            
         }
 
 
@@ -392,75 +414,42 @@ namespace FileSync
             lock (UILockObj)
             {
                 LogHelper.writeInfoLog(string.Format("change upload status:{0} !", displayStatus));
-                Invoke(mi, displayStatus);
+                FileChangeGridView.Invoke(mi, displayStatus);
             }
         }
         private void downloadFile(DataGridViewCellEventArgs e)
         {
             string fullFilePath = FileChangeGridView.Rows[e.RowIndex].Cells[0].Value.ToString();
-            string[] splitchar = new string[] { ":" };
-            string diskPrefix = "";
-            string purepath = "";
-            string[] pathSplit = fullFilePath.Split(splitchar, StringSplitOptions.RemoveEmptyEntries);
-            if (pathSplit.Length > 1)
-            {
-                diskPrefix = pathSplit[0].ToLower();
-                purepath = pathSplit[1];
-            }
-            else
-            {
-                return;
-            }
-            string pcFilePathToWSLAddress = "/mnt/" + diskPrefix + purepath.Replace("\\", "/");
             string filePath = fullFilePath.Replace(_monitorPath, "").Replace("\\", "/");
             string remoteFilePath = _remotePath + "/" + filePath;
             remoteFilePath = remoteFilePath.Replace("//", "/");
-            if (!checkLocalDirAndCreate(fullFilePath))
+            try
             {
-                return;
+                if (!checkLocalDirAndCreate(fullFilePath))
+                {
+                    return;
+                }
+                if (!checRemoteResource(remoteFilePath, false))
+                {
+                    return;
+                }
+                var stream = File.Open(fullFilePath, FileMode.OpenOrCreate);
+                _sftpClient.DownloadFile(remoteFilePath, stream);
+                removeFileItem(e, fullFilePath);
             }
-            if (!checRemoteResource(remoteFilePath, false))
-            {
-                return;
-            }
-            string rsyncCommand = string.Format("rsync -avzr {1}@{2}:{3} {0}", pcFilePathToWSLAddress, _userName, _serverAddress, remoteFilePath);
-            string executeCommand = "\"" + rsyncCommand + "\"";
-            isInDownload = true;
-            downloadingFile = fullFilePath;
-            int processId = fileTransfer.executeWSLBashCommand(executeCommand);
-            string runInfo = "";
-            if (fileTransfer.processIsFinishedWithSucess(processId,out runInfo))
-            {
-                removeFileItem(e);
-                LogHelper.writeInfoLog(string.Format("Download File: {1} to {0}, Full Command: {2}", fullFilePath, remoteFilePath, rsyncCommand));
-                LogHelper.writeInfoLog("Download!");
-            }
-            else
+            catch (System.Exception ex)
             {
                 MessageBox.Show(string.Format("File: {0} Download Faild! Error info: {1}",
-                    FileChangeGridView.Rows[e.RowIndex].Cells[0].Value.ToString(), runInfo), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    FileChangeGridView.Rows[e.RowIndex].Cells[0].Value.ToString(), ex.Message), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             isInDownload = false;
 
         }
         private void uploadFile(DataGridViewCellEventArgs e)
         {
+            
             updateUploadStatusDisplay(e,"Uploading");
             string fullFilePath = FileChangeGridView.Rows[e.RowIndex].Cells[0].Value.ToString();
-            string[] splitchar = new string[] { ":" };
-            string diskPrefix = "";
-            string purepath = "";
-            string[] pathSplit = fullFilePath.Split(splitchar, StringSplitOptions.RemoveEmptyEntries);
-            if (pathSplit.Length > 1)
-            {
-                diskPrefix = pathSplit[0].ToLower();
-                purepath = pathSplit[1];
-            }
-            else
-            {
-                return;
-            }
-            string pcFilePathToWSLAddress = "/mnt/" + diskPrefix + purepath.Replace("\\", "/");
             string filePath = fullFilePath.Replace(_monitorPath, "").Replace("\\", "/");
             string remoteFilePath = _remotePath + "/" + filePath;
             remoteFilePath = remoteFilePath.Replace("//", "/");
@@ -469,21 +458,17 @@ namespace FileSync
                 updateUploadStatusDisplay(e, "Upload");
                 return;
             }
-            string rsyncCommand = $"rsync -avzr {pcFilePathToWSLAddress} {_userName}@{_serverAddress}:{remoteFilePath}";
-            string executeCommand = "\"" + rsyncCommand + "\"";
-            string runInfo = "";
-            int processId =  fileTransfer.executeWSLBashCommand(executeCommand);
-            if (fileTransfer.processIsFinishedWithSucess(processId, out runInfo))
+            try
             {
-                removeFileItem(e);
-                LogHelper.writeInfoLog(string.Format("Upload File: {0} to {1}, Full Command: {2}", fullFilePath, remoteFilePath, rsyncCommand));
-                LogHelper.writeInfoLog("Uploaded!");
+                var stream = File.Open(fullFilePath, FileMode.Open);
+                _sftpClient.UploadFile(stream, remoteFilePath, true);
+                removeFileItem(e, fullFilePath);
             }
-            else
+            catch (System.Exception ex)
             {
                 updateUploadStatusDisplay(e, "Upload");
-                MessageBox.Show(string.Format("File: {0} Upload Faild! Error info: {1}",
-                    FileChangeGridView.Rows[e.RowIndex].Cells[0].Value.ToString(), runInfo), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(string.Format("File: {0} Upload Faild, Error info: {1}!",
+                    FileChangeGridView.Rows[e.RowIndex].Cells[0].Value.ToString(), ex.Message), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -497,9 +482,7 @@ namespace FileSync
                     && _serverAddress.Length > 0
                     )
                 {
-                    //"rsync -avL  ./sshd_config   jianpeng@192.168.248.137:/home/jianpeng/workspace";
                     Task.Factory.StartNew(() => uploadFile(e), TaskCreationOptions.PreferFairness);
-                    //Task.Run(() => uploadFile(e));
 
                 }
                 else if (e.ColumnIndex == 4)
@@ -508,7 +491,7 @@ namespace FileSync
                 }
                 else if (e.ColumnIndex == 5)
                 {
-                    removeFileItem(e);
+                    removeFileItem(e,null);
                 }
             }
         }
@@ -534,6 +517,8 @@ namespace FileSync
         private bool isFindWSLBash;
         private bool isPause = false;
         private bool connectInfoIsChanged = false;
+        private bool isReConnectError;
+        private bool realTimeSyncFlag;
         private void resetToolStripMenuItem_Click(object sender, EventArgs e)
         {
             _fileIndexDic.Clear();
@@ -568,6 +553,19 @@ namespace FileSync
                 this.WindowState = FormWindowState.Normal;
                 this.notifyIcon_background.Visible = true;
             }
+        }
+
+        private void realTimeSyncToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (!realTimeSyncFlag)
+            {
+                realTimeSyncFlag = true;
+            }
+            else
+            {
+                realTimeSyncFlag = false;
+            }
+            
         }
     }
 }

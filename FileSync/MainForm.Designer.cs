@@ -42,12 +42,13 @@
             this.statusStrip_infoBar = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel_status = new System.Windows.Forms.ToolStripStatusLabel();
             this.FileChangeGridView = new System.Windows.Forms.DataGridView();
-            this.igroneThisTime = new System.Windows.Forms.DataGridViewButtonColumn();
-            this.Downlaod = new System.Windows.Forms.DataGridViewButtonColumn();
-            this.UpLoad = new System.Windows.Forms.DataGridViewButtonColumn();
-            this.ChangeType = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.ChangeTime = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.FileName = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ChangeTime = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ChangeType = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.UpLoad = new System.Windows.Forms.DataGridViewButtonColumn();
+            this.Downlaod = new System.Windows.Forms.DataGridViewButtonColumn();
+            this.igroneThisTime = new System.Windows.Forms.DataGridViewButtonColumn();
+            this.realTimeSyncToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.contextMenuStrip_backgroud.SuspendLayout();
             this.statusStrip_infoBar.SuspendLayout();
@@ -60,7 +61,8 @@
             this.configToolStripMenuItem,
             this.syncFolderToolStripMenuItem,
             this.resetToolStripMenuItem,
-            this.pauseToolStripMenuItem});
+            this.pauseToolStripMenuItem,
+            this.realTimeSyncToolStripMenuItem});
             resources.ApplyResources(this.menuStrip1, "menuStrip1");
             this.menuStrip1.Name = "menuStrip1";
             // 
@@ -137,21 +139,26 @@
             this.FileChangeGridView.RowTemplate.Height = 35;
             this.FileChangeGridView.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.FileChangeGridView_CellContentClick);
             // 
-            // igroneThisTime
+            // FileName
             // 
-            this.igroneThisTime.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.ColumnHeader;
-            resources.ApplyResources(this.igroneThisTime, "igroneThisTime");
-            this.igroneThisTime.Name = "igroneThisTime";
-            this.igroneThisTime.Text = "Ignore";
-            this.igroneThisTime.UseColumnTextForButtonValue = true;
+            this.FileName.FillWeight = 21.16487F;
+            resources.ApplyResources(this.FileName, "FileName");
+            this.FileName.Name = "FileName";
+            this.FileName.ReadOnly = true;
             // 
-            // Downlaod
+            // ChangeTime
             // 
-            this.Downlaod.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.ColumnHeader;
-            resources.ApplyResources(this.Downlaod, "Downlaod");
-            this.Downlaod.Name = "Downlaod";
-            this.Downlaod.Text = "Downlaod";
-            this.Downlaod.UseColumnTextForButtonValue = true;
+            this.ChangeTime.FillWeight = 21.16487F;
+            resources.ApplyResources(this.ChangeTime, "ChangeTime");
+            this.ChangeTime.Name = "ChangeTime";
+            this.ChangeTime.ReadOnly = true;
+            // 
+            // ChangeType
+            // 
+            this.ChangeType.FillWeight = 21.16487F;
+            resources.ApplyResources(this.ChangeType, "ChangeType");
+            this.ChangeType.Name = "ChangeType";
+            this.ChangeType.ReadOnly = true;
             // 
             // UpLoad
             // 
@@ -161,26 +168,27 @@
             this.UpLoad.Text = "UpLoad";
             this.UpLoad.UseColumnTextForButtonValue = true;
             // 
-            // ChangeType
+            // Downlaod
             // 
-            this.ChangeType.FillWeight = 21.16487F;
-            resources.ApplyResources(this.ChangeType, "ChangeType");
-            this.ChangeType.Name = "ChangeType";
-            this.ChangeType.ReadOnly = true;
+            this.Downlaod.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.ColumnHeader;
+            resources.ApplyResources(this.Downlaod, "Downlaod");
+            this.Downlaod.Name = "Downlaod";
+            this.Downlaod.Text = "Downlaod";
+            this.Downlaod.UseColumnTextForButtonValue = true;
             // 
-            // ChangeTime
+            // igroneThisTime
             // 
-            this.ChangeTime.FillWeight = 21.16487F;
-            resources.ApplyResources(this.ChangeTime, "ChangeTime");
-            this.ChangeTime.Name = "ChangeTime";
-            this.ChangeTime.ReadOnly = true;
+            this.igroneThisTime.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.ColumnHeader;
+            resources.ApplyResources(this.igroneThisTime, "igroneThisTime");
+            this.igroneThisTime.Name = "igroneThisTime";
+            this.igroneThisTime.Text = "Ignore";
+            this.igroneThisTime.UseColumnTextForButtonValue = true;
             // 
-            // FileName
+            // realTimeSyncToolStripMenuItem
             // 
-            this.FileName.FillWeight = 21.16487F;
-            resources.ApplyResources(this.FileName, "FileName");
-            this.FileName.Name = "FileName";
-            this.FileName.ReadOnly = true;
+            this.realTimeSyncToolStripMenuItem.Name = "realTimeSyncToolStripMenuItem";
+            resources.ApplyResources(this.realTimeSyncToolStripMenuItem, "realTimeSyncToolStripMenuItem");
+            this.realTimeSyncToolStripMenuItem.Click += new System.EventHandler(this.realTimeSyncToolStripMenuItem_Click);
             // 
             // MainForm
             // 
@@ -222,6 +230,7 @@
         private System.Windows.Forms.DataGridViewButtonColumn UpLoad;
         private System.Windows.Forms.DataGridViewButtonColumn Downlaod;
         private System.Windows.Forms.DataGridViewButtonColumn igroneThisTime;
+        private System.Windows.Forms.ToolStripMenuItem realTimeSyncToolStripMenuItem;
     }
 }
 
