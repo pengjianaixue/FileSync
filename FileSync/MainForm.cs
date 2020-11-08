@@ -297,16 +297,17 @@ namespace FileSync
             {
                 if (e.RowIndex >= 0)
                 {
-                    if (e.RowIndex >= FileChangeGridView.RowCount)
+                    string fileName;
+                    
+                    if (e.RowIndex < FileChangeGridView.RowCount)
                     {
-                        MessageBox.Show($"removeFileItem Error: the rowIndex {e.RowIndex} is bigger than RowCount" , "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        fileName = (string)FileChangeGridView.Rows[e.RowIndex].Cells[0].Value;
+                        if (specialFileName == fileName)
+                        {
+                            FileChangeGridView.Rows.RemoveAt(e.RowIndex);
+                        }
+                        _fileIndexDic.Remove(specialFileName);
                         return;
-                    }
-                    _fileIndexDic.Remove(specialFileName);
-                    string fileName = (string)FileChangeGridView.Rows[e.RowIndex].Cells[0].Value;
-                    if (specialFileName == fileName)
-                    {
-                        FileChangeGridView.Rows.RemoveAt(e.RowIndex);
                     }
                     else
                     {
@@ -317,10 +318,12 @@ namespace FileSync
                             if (fileName == specialFileName)
                             {
                                 FileChangeGridView.Rows.Remove(item);
-                                break;
+                                _fileIndexDic.Remove(specialFileName);
+                                return;
                             }
                         }
                     }
+                    MessageBox.Show($"removeFileItem Error: the original file index: {e.RowIndex}  and file:  {specialFileName} remove error", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
             );
@@ -419,7 +422,10 @@ namespace FileSync
         }
         private void downloadFile(DataGridViewCellEventArgs e)
         {
+            //updateUploadStatusDisplay(e, "Downloading");
+            isInDownload = true;
             string fullFilePath = FileChangeGridView.Rows[e.RowIndex].Cells[0].Value.ToString();
+            downloadingFile = fullFilePath;
             string filePath = fullFilePath.Replace(_monitorPath, "").Replace("\\", "/");
             string remoteFilePath = _remotePath + "/" + filePath;
             remoteFilePath = remoteFilePath.Replace("//", "/");
@@ -433,8 +439,10 @@ namespace FileSync
                 {
                     return;
                 }
-                var stream = File.Open(fullFilePath, FileMode.OpenOrCreate);
-                _sftpClient.DownloadFile(remoteFilePath, stream);
+                using (var stream = File.Open(fullFilePath, FileMode.OpenOrCreate))
+                {
+                    _sftpClient.DownloadFile(remoteFilePath, stream);
+                }
                 removeFileItem(e, fullFilePath);
             }
             catch (System.Exception ex)
@@ -460,8 +468,10 @@ namespace FileSync
             }
             try
             {
-                var stream = File.Open(fullFilePath, FileMode.Open);
-                _sftpClient.UploadFile(stream, remoteFilePath, true);
+                using (var stream = File.Open(fullFilePath, FileMode.Open))
+                {
+                    _sftpClient.UploadFile(stream, remoteFilePath, true);
+                }
                 removeFileItem(e, fullFilePath);
             }
             catch (System.Exception ex)
