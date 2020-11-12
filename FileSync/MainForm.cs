@@ -501,7 +501,7 @@ namespace FileSync
                 }
                 else if (e.ColumnIndex == 5)
                 {
-                    removeFileItem(e,null);
+                    removeFileItem(e, FileChangeGridView.Rows[e.RowIndex].Cells[0].Value.ToString());
                 }
             }
         }
