@@ -31,16 +31,9 @@ namespace FileSync
             _configFileName = Environment.CurrentDirectory + "/config.ini";
             configLoad();
             clearView();
-            findWSLBash();
-            fileTransfer.programPath = wlsBashPath;
-            if (isFindWSLBash)
-            {
-                fileTransfer.programPath = wlsBashPath;
-            }
-            else
-            {
-                MessageBox.Show("WSL bash.exe can not find in the PC!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            Task.Factory.StartNew(()=>sshChannelCreate());
+            // not use 
+            fileTransfer.programPath = "";
             
 
         }
