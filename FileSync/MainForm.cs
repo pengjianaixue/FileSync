@@ -56,17 +56,6 @@ namespace FileSync
                 isReConnectError = true;
             }
         }
-
-        private void findWSLBash()
-        {
-            wlsBashPath = Environment.CurrentDirectory+ "\\bash.exe";
-            if (File.Exists(wlsBashPath))
-            {
-                isFindWSLBash = true;
-                wlsBashPath = "bash.exe";//"\"" + wlsBashPath + "\"";
-            }
-        }
-
         private void sshChannelCreate()
         {
             
@@ -516,12 +505,9 @@ namespace FileSync
         private UserConfig userConfig = new UserConfig();
         private List<Tuple<string, string, string>> changedFileList = new List<Tuple<string, string, string>>();
         private Dictionary<string, int> _fileIndexDic = new Dictionary<string, int>();
-        private string wlsBashPath;
-        private bool isFindWSLBash;
         private bool isPause = false;
         private bool connectInfoIsChanged = false;
         private bool isReConnectError;
-        private bool realTimeSyncFlag;
         private void resetToolStripMenuItem_Click(object sender, EventArgs e)
         {
             _fileIndexDic.Clear();
@@ -558,16 +544,16 @@ namespace FileSync
             }
         }
 
-        private void realTimeSyncToolStripMenuItem_Click(object sender, EventArgs e)
+        private void UplaodAllToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (!realTimeSyncFlag)
-            {
-                realTimeSyncFlag = true;
-            }
-            else
-            {
-                realTimeSyncFlag = false;
-            }
+            Task.Factory.StartNew(() => {
+                while (FileChangeGridView.Rows.Count>0)
+                {
+                    DataGridViewCellEventArgs argsTemp = new DataGridViewCellEventArgs(0, 0);
+                    uploadFile(argsTemp);
+                }
+
+            });
             
         }
     }
