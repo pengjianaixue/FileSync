@@ -283,18 +283,20 @@ namespace FileSync
                     
                     if (rowIndex < FileChangeGridView.RowCount)
                     {
-                        fileName = (string)FileChangeGridView.Rows[rowIndex].Cells[0].Value;
+                        //Console.WriteLine($"rowIndex: {rowIndex} < FileChangeGridView.RowCount {FileChangeGridView.RowCount}");
+                        fileName = FileChangeGridView.Rows[rowIndex].Cells[0].Value.ToString();
                         if (specialFileName == fileName)
                         {
                             FileChangeGridView.Rows.RemoveAt(rowIndex);
+                            //Console.WriteLine($"specialFileName: {specialFileName} == fileName {fileName}");
+                            _fileIndexDic.Remove(specialFileName);
+                            return;
                         }
-                        _fileIndexDic.Remove(specialFileName);
-                        return;
                     }
                     foreach (DataGridViewRow item in FileChangeGridView.Rows)
                     {
 
-                        fileName = (string)item.Cells[0].Value;
+                        fileName = item.Cells[0].Value.ToString();
                         if (fileName == specialFileName)
                         {
                             FileChangeGridView.Rows.Remove(item);
@@ -478,9 +480,8 @@ namespace FileSync
 
         private void uploadFile(DataGridViewCellEventArgs e)
         {
-
-            updateUploadStatusDisplay(e.RowIndex, "Uploading");
             string fullFilePath = FileChangeGridView.Rows[e.RowIndex].Cells[0].Value.ToString();
+            updateUploadStatusDisplay(e.RowIndex, "Uploading");
             if (!uploadFile(fullFilePath))
             {
                 updateUploadStatusDisplay(e.RowIndex, "Upload");
@@ -586,12 +587,15 @@ namespace FileSync
                 Task.Factory.StartNew(() =>
                 {
                     updateUploadStatusDisplay(0, "Uploading", item);
+                    Console.WriteLine($"Done the Uploading: {item}");
                     if (!uploadFile(item))
                     {
                         updateUploadStatusDisplay(0, "Upload", item);
+                        Console.WriteLine($"uploadFile failed: {item}");
                         return;
                     }
                     removeFileItem(0, item);
+                    Console.WriteLine($"remove File: {item}");
                     return;
                 });
             }
