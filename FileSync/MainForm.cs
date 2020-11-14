@@ -273,39 +273,36 @@ namespace FileSync
             }
         }
 
-        private void removeFileItem(DataGridViewCellEventArgs e, string specialFileName)
+        private void removeFileItem(int rowIndex, string specialFileName)
         {
             MethodInvoker mi = new MethodInvoker(() =>
             {
-                if (e.RowIndex >= 0)
+                if (rowIndex >= 0)
                 {
                     string fileName;
                     
-                    if (e.RowIndex < FileChangeGridView.RowCount)
+                    if (rowIndex < FileChangeGridView.RowCount)
                     {
-                        fileName = (string)FileChangeGridView.Rows[e.RowIndex].Cells[0].Value;
+                        fileName = (string)FileChangeGridView.Rows[rowIndex].Cells[0].Value;
                         if (specialFileName == fileName)
                         {
-                            FileChangeGridView.Rows.RemoveAt(e.RowIndex);
+                            FileChangeGridView.Rows.RemoveAt(rowIndex);
                         }
                         _fileIndexDic.Remove(specialFileName);
                         return;
                     }
-                    else
+                    foreach (DataGridViewRow item in FileChangeGridView.Rows)
                     {
-                        foreach (DataGridViewRow item in FileChangeGridView.Rows)
+
+                        fileName = (string)item.Cells[0].Value;
+                        if (fileName == specialFileName)
                         {
-                            
-                            fileName = (string)item.Cells[0].Value;
-                            if (fileName == specialFileName)
-                            {
-                                FileChangeGridView.Rows.Remove(item);
-                                _fileIndexDic.Remove(specialFileName);
-                                return;
-                            }
+                            FileChangeGridView.Rows.Remove(item);
+                            _fileIndexDic.Remove(specialFileName);
+                            return;
                         }
                     }
-                    MessageBox.Show($"removeFileItem Error: the original file index: {e.RowIndex}  and file:  {specialFileName} remove error", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show($"removeFileItem Error: the original file index: {rowIndex}  and file:  {specialFileName} remove error", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
             );
@@ -387,11 +384,27 @@ namespace FileSync
         }
 
 
-        private void updateUploadStatusDisplay(DataGridViewCellEventArgs e,string displayStatus)
+        private void updateUploadStatusDisplay(int rowIndex, string displayStatus,string fileName="")
         {
             Action<string> mi = new Action<string>((status) =>
             {
-                DataGridViewButtonCell uploadButton = (DataGridViewButtonCell)FileChangeGridView.Rows[e.RowIndex].Cells[3];//.Value = "Uploading";
+                int vaildRowIndex = rowIndex;
+                if (fileName.Length > 0)
+                {
+                    if (FileChangeGridView.Rows[rowIndex].Cells[0].ToString() != fileName)
+                    {
+                        string currentRowFileName = "";
+                        foreach (DataGridViewRow item in FileChangeGridView.Rows)
+                        {
+                            currentRowFileName = item.Cells[0].Value.ToString();
+                            if (fileName == currentRowFileName)
+                            {
+                                vaildRowIndex = item.Index;
+                            }
+                        }
+                    }
+                }
+                DataGridViewButtonCell uploadButton = (DataGridViewButtonCell)FileChangeGridView.Rows[vaildRowIndex].Cells[3];
                 uploadButton.UseColumnTextForButtonValue = false;
                 resizeColumn(3);
                 uploadButton.Value = status;
@@ -425,7 +438,7 @@ namespace FileSync
                 {
                     _sftpClient.DownloadFile(remoteFilePath, stream);
                 }
-                removeFileItem(e, fullFilePath);
+                removeFileItem(e.RowIndex, fullFilePath);
             }
             catch (System.Exception ex)
             {
@@ -435,18 +448,15 @@ namespace FileSync
             isInDownload = false;
 
         }
-        private void uploadFile(DataGridViewCellEventArgs e)
+
+        private bool uploadFile(string fullFilePath)
         {
-            
-            updateUploadStatusDisplay(e,"Uploading");
-            string fullFilePath = FileChangeGridView.Rows[e.RowIndex].Cells[0].Value.ToString();
             string filePath = fullFilePath.Replace(_monitorPath, "").Replace("\\", "/");
             string remoteFilePath = _remotePath + "/" + filePath;
             remoteFilePath = remoteFilePath.Replace("//", "/");
             if (!checRemoteResource(remoteFilePath))
             {
-                updateUploadStatusDisplay(e, "Upload");
-                return;
+                return false;
             }
             try
             {
@@ -454,14 +464,30 @@ namespace FileSync
                 {
                     _sftpClient.UploadFile(stream, remoteFilePath, true);
                 }
-                removeFileItem(e, fullFilePath);
+                return true;
+                
             }
             catch (System.Exception ex)
             {
-                updateUploadStatusDisplay(e, "Upload");
+                
                 MessageBox.Show(string.Format("File: {0} Upload Faild, Error info: {1}!",
-                    FileChangeGridView.Rows[e.RowIndex].Cells[0].Value.ToString(), ex.Message), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    fullFilePath, ex.Message), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
             }
+        }
+
+        private void uploadFile(DataGridViewCellEventArgs e)
+        {
+
+            updateUploadStatusDisplay(e.RowIndex, "Uploading");
+            string fullFilePath = FileChangeGridView.Rows[e.RowIndex].Cells[0].Value.ToString();
+            if (!uploadFile(fullFilePath))
+            {
+                updateUploadStatusDisplay(e.RowIndex, "Upload");
+                return;
+            }
+            removeFileItem(e.RowIndex, fullFilePath);
+            return;
         }
 
         private void FileChangeGridView_CellContentClick(object sender, DataGridViewCellEventArgs e)
@@ -483,7 +509,7 @@ namespace FileSync
                 }
                 else if (e.ColumnIndex == 5)
                 {
-                    removeFileItem(e, FileChangeGridView.Rows[e.RowIndex].Cells[0].Value.ToString());
+                    removeFileItem(e.RowIndex, FileChangeGridView.Rows[e.RowIndex].Cells[0].Value.ToString());
                 }
             }
         }
@@ -546,15 +572,31 @@ namespace FileSync
 
         private void UplaodAllToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Task.Factory.StartNew(() => {
-                while (FileChangeGridView.Rows.Count>0)
-                {
-                    DataGridViewCellEventArgs argsTemp = new DataGridViewCellEventArgs(0, 0);
-                    uploadFile(argsTemp);
-                }
 
-            });
+            List<string> uploadFileList = new List<string>();
+            foreach (DataGridViewRow item in FileChangeGridView.Rows)
+            {
+                if (item.Cells[0].Value.ToString().Length > 0)
+                {
+                    uploadFileList.Add(item.Cells[0].Value.ToString());
+                }
+            }
+            foreach (string item in uploadFileList)
+            {
+                Task.Factory.StartNew(() =>
+                {
+                    updateUploadStatusDisplay(0, "Uploading", item);
+                    if (!uploadFile(item))
+                    {
+                        updateUploadStatusDisplay(0, "Upload", item);
+                        return;
+                    }
+                    removeFileItem(0, item);
+                    return;
+                });
+            }
             
+
         }
     }
 }
