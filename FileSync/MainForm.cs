@@ -40,20 +40,19 @@ namespace FileSync
 
         private void _sftpClient_ErrorOccurred(object sender, Renci.SshNet.Common.ExceptionEventArgs e)
         {
-            MessageBox.Show(string.Format("SFTP client Error: {0}",e.Exception.Message) , "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             try
             {
-                if (!isReConnectError)
+                if (isNeedAutoReconnect)
                 {
+                    MessageBox.Show(string.Format($"SFTP client Error: {e.Exception.Message}  Do the reconnect action."), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     _sftpClient.Connect();
-                    isReConnectError = false;
+                    isNeedAutoReconnect = false;
                 }
-                
             }
             catch (System.Exception ex)
             {
                 MessageBox.Show(string.Format("SFTP client re-connect error: {0}", ex.Message), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                isReConnectError = true;
+                isNeedAutoReconnect = false;
             }
         }
         private void sshChannelCreate()
@@ -348,7 +347,7 @@ namespace FileSync
                 if (_sftpClient != null && !_sftpClient.IsConnected)
                 {
                     _sftpClient.Connect();
-                    isReConnectError = false;
+                    isNeedAutoReconnect = true;
                 }
                 if (_sftpClient != null && _sftpClient.IsConnected)
                 {
@@ -534,7 +533,7 @@ namespace FileSync
         private Dictionary<string, int> _fileIndexDic = new Dictionary<string, int>();
         private bool isPause = false;
         private bool connectInfoIsChanged = false;
-        private bool isReConnectError;
+        private bool isNeedAutoReconnect;
         private void resetToolStripMenuItem_Click(object sender, EventArgs e)
         {
             _fileIndexDic.Clear();
