@@ -110,6 +110,7 @@ namespace FileSync
                     if (_serverAddress != configChangeType.changInfo)
                     {
                         _serverAddress = configChangeType.changInfo;
+                        connectInfoIsChanged = true;
                         IniFileOperator.setKeyValue(ConfigChangeType.serverAddress.ToString(), _serverAddress, _configFileName);
                     }
                     break;
