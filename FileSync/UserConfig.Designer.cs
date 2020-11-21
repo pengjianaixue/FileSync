@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(UserConfig));
             this.textBox_userName = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
@@ -38,6 +39,7 @@
             this.textBox_remoteFolder = new System.Windows.Forms.TextBox();
             this.label4 = new System.Windows.Forms.Label();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.comboBox_Configuration = new System.Windows.Forms.ComboBox();
             this.checkBox_hostNameMode = new System.Windows.Forms.CheckBox();
             this.button_Cancel = new System.Windows.Forms.Button();
             this.button_openFolder = new System.Windows.Forms.Button();
@@ -45,14 +47,17 @@
             this.label6 = new System.Windows.Forms.Label();
             this.textBox_serverAddress = new System.Windows.Forms.TextBox();
             this.textBox_fileFilter = new System.Windows.Forms.TextBox();
+            this.label7 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
             this.localFolderBrowserDialog = new System.Windows.Forms.FolderBrowserDialog();
+            this.mainFormBindingSource = new System.Windows.Forms.BindingSource(this.components);
             this.panel1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.mainFormBindingSource)).BeginInit();
             this.SuspendLayout();
             // 
             // textBox_userName
             // 
-            this.textBox_userName.Location = new System.Drawing.Point(132, 46);
+            this.textBox_userName.Location = new System.Drawing.Point(140, 91);
             this.textBox_userName.Name = "textBox_userName";
             this.textBox_userName.Size = new System.Drawing.Size(250, 21);
             this.textBox_userName.TabIndex = 0;
@@ -61,7 +66,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(5, 55);
+            this.label1.Location = new System.Drawing.Point(13, 100);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(53, 12);
             this.label1.TabIndex = 1;
@@ -69,7 +74,7 @@
             // 
             // textBox_passWord
             // 
-            this.textBox_passWord.Location = new System.Drawing.Point(132, 81);
+            this.textBox_passWord.Location = new System.Drawing.Point(140, 126);
             this.textBox_passWord.Name = "textBox_passWord";
             this.textBox_passWord.PasswordChar = '*';
             this.textBox_passWord.Size = new System.Drawing.Size(250, 21);
@@ -79,7 +84,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(5, 90);
+            this.label2.Location = new System.Drawing.Point(13, 135);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(53, 12);
             this.label2.TabIndex = 1;
@@ -87,7 +92,7 @@
             // 
             // textBox_localFolder
             // 
-            this.textBox_localFolder.Location = new System.Drawing.Point(132, 116);
+            this.textBox_localFolder.Location = new System.Drawing.Point(140, 161);
             this.textBox_localFolder.Name = "textBox_localFolder";
             this.textBox_localFolder.Size = new System.Drawing.Size(370, 21);
             this.textBox_localFolder.TabIndex = 0;
@@ -96,7 +101,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(5, 125);
+            this.label3.Location = new System.Drawing.Point(13, 170);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(107, 12);
             this.label3.TabIndex = 1;
@@ -104,7 +109,7 @@
             // 
             // textBox_remoteFolder
             // 
-            this.textBox_remoteFolder.Location = new System.Drawing.Point(132, 184);
+            this.textBox_remoteFolder.Location = new System.Drawing.Point(140, 229);
             this.textBox_remoteFolder.Name = "textBox_remoteFolder";
             this.textBox_remoteFolder.Size = new System.Drawing.Size(370, 21);
             this.textBox_remoteFolder.TabIndex = 0;
@@ -113,7 +118,7 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(5, 192);
+            this.label4.Location = new System.Drawing.Point(13, 237);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(113, 12);
             this.label4.TabIndex = 1;
@@ -121,6 +126,7 @@
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.comboBox_Configuration);
             this.panel1.Controls.Add(this.checkBox_hostNameMode);
             this.panel1.Controls.Add(this.button_Cancel);
             this.panel1.Controls.Add(this.button_openFolder);
@@ -134,18 +140,29 @@
             this.panel1.Controls.Add(this.textBox_localFolder);
             this.panel1.Controls.Add(this.label2);
             this.panel1.Controls.Add(this.textBox_fileFilter);
+            this.panel1.Controls.Add(this.label7);
             this.panel1.Controls.Add(this.label5);
             this.panel1.Controls.Add(this.textBox_remoteFolder);
             this.panel1.Controls.Add(this.label1);
-            this.panel1.Location = new System.Drawing.Point(12, 12);
+            this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panel1.Location = new System.Drawing.Point(0, 0);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(619, 273);
+            this.panel1.Size = new System.Drawing.Size(767, 351);
             this.panel1.TabIndex = 2;
+            // 
+            // comboBox_Configuration
+            // 
+            this.comboBox_Configuration.FormattingEnabled = true;
+            this.comboBox_Configuration.Location = new System.Drawing.Point(140, 30);
+            this.comboBox_Configuration.Name = "comboBox_Configuration";
+            this.comboBox_Configuration.Size = new System.Drawing.Size(250, 20);
+            this.comboBox_Configuration.TabIndex = 4;
+            this.comboBox_Configuration.SelectedIndexChanged += new System.EventHandler(this.comboBox_Configuration_SelectedIndexChanged);
             // 
             // checkBox_hostNameMode
             // 
             this.checkBox_hostNameMode.AutoSize = true;
-            this.checkBox_hostNameMode.Location = new System.Drawing.Point(389, 15);
+            this.checkBox_hostNameMode.Location = new System.Drawing.Point(397, 60);
             this.checkBox_hostNameMode.Name = "checkBox_hostNameMode";
             this.checkBox_hostNameMode.Size = new System.Drawing.Size(120, 16);
             this.checkBox_hostNameMode.TabIndex = 3;
@@ -156,7 +173,7 @@
             // button_Cancel
             // 
             this.button_Cancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.button_Cancel.Location = new System.Drawing.Point(533, 247);
+            this.button_Cancel.Location = new System.Drawing.Point(680, 316);
             this.button_Cancel.Name = "button_Cancel";
             this.button_Cancel.Size = new System.Drawing.Size(75, 23);
             this.button_Cancel.TabIndex = 2;
@@ -166,7 +183,7 @@
             // 
             // button_openFolder
             // 
-            this.button_openFolder.Location = new System.Drawing.Point(508, 116);
+            this.button_openFolder.Location = new System.Drawing.Point(516, 161);
             this.button_openFolder.Name = "button_openFolder";
             this.button_openFolder.Size = new System.Drawing.Size(100, 23);
             this.button_openFolder.TabIndex = 2;
@@ -176,7 +193,7 @@
             // 
             // button_Apply
             // 
-            this.button_Apply.Location = new System.Drawing.Point(452, 247);
+            this.button_Apply.Location = new System.Drawing.Point(580, 316);
             this.button_Apply.Name = "button_Apply";
             this.button_Apply.Size = new System.Drawing.Size(75, 23);
             this.button_Apply.TabIndex = 2;
@@ -187,7 +204,7 @@
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(5, 159);
+            this.label6.Location = new System.Drawing.Point(13, 204);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(71, 12);
             this.label6.TabIndex = 1;
@@ -195,7 +212,7 @@
             // 
             // textBox_serverAddress
             // 
-            this.textBox_serverAddress.Location = new System.Drawing.Point(132, 11);
+            this.textBox_serverAddress.Location = new System.Drawing.Point(140, 56);
             this.textBox_serverAddress.Name = "textBox_serverAddress";
             this.textBox_serverAddress.Size = new System.Drawing.Size(250, 21);
             this.textBox_serverAddress.TabIndex = 0;
@@ -212,16 +229,25 @@
             ";"});
             this.textBox_fileFilter.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
             this.textBox_fileFilter.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.CustomSource;
-            this.textBox_fileFilter.Location = new System.Drawing.Point(132, 150);
+            this.textBox_fileFilter.Location = new System.Drawing.Point(140, 195);
             this.textBox_fileFilter.Name = "textBox_fileFilter";
             this.textBox_fileFilter.Size = new System.Drawing.Size(370, 21);
             this.textBox_fileFilter.TabIndex = 0;
             this.textBox_fileFilter.TextChanged += new System.EventHandler(this.textBox_fileFilter_TextChanged);
             // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(12, 30);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(83, 12);
+            this.label7.TabIndex = 1;
+            this.label7.Text = "Configuration";
+            // 
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(5, 20);
+            this.label5.Location = new System.Drawing.Point(13, 65);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(89, 12);
             this.label5.TabIndex = 1;
@@ -231,13 +257,17 @@
             // 
             this.localFolderBrowserDialog.ShowNewFolderButton = false;
             // 
+            // mainFormBindingSource
+            // 
+            this.mainFormBindingSource.DataSource = typeof(FileSync.MainForm);
+            // 
             // UserConfig
             // 
             this.AcceptButton = this.button_Apply;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.button_Cancel;
-            this.ClientSize = new System.Drawing.Size(638, 293);
+            this.ClientSize = new System.Drawing.Size(767, 351);
             this.ControlBox = false;
             this.Controls.Add(this.panel1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
@@ -246,6 +276,7 @@
             this.Text = "UserConfig";
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.mainFormBindingSource)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -269,5 +300,8 @@
         private System.Windows.Forms.CheckBox checkBox_hostNameMode;
         private System.Windows.Forms.Label label6;
         public System.Windows.Forms.TextBox textBox_fileFilter;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.ComboBox comboBox_Configuration;
+        private System.Windows.Forms.BindingSource mainFormBindingSource;
     }
 }

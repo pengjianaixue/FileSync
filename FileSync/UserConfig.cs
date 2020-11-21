@@ -20,6 +20,7 @@ namespace FileSync
         fileFilter
 
     }
+    
     public partial class UserConfig : Form
     {
         
@@ -115,6 +116,32 @@ namespace FileSync
             configChangeInfo.changInfo = textBox_fileFilter.Text;
             configChangeInfo.changeType = ConfigChangeType.fileFilter;
             configChanged?.Invoke(sender, configChangeInfo);
+        }
+
+        private void comboBox_Configuration_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (comboBox_Configuration.SelectedIndex >= 0)
+            {
+                _currentUsedConfigurationIndex = comboBox_Configuration.SelectedIndex;
+                updateConfiguration(_userConfigList[_currentUsedConfigurationIndex]);
+            }
+            
+        }
+        private void updateConfiguration(ConfigInfo configInfo)
+        {
+
+
+        }
+        private List<ConfigInfo> _userConfigList = new List<ConfigInfo>();
+        private int _currentUsedConfigurationIndex;
+        class ConfigInfo
+        {
+            public string localFolder = "";
+            public string serverAddress = "";
+            public string userName = "";
+            public string passWord = "";
+            public string remoteFolder = "";
+            public string fileFilter = "";
         }
     }
 }
