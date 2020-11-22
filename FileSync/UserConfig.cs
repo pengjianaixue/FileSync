@@ -17,9 +17,10 @@ namespace FileSync
         userName,
         passWord,
         remoteFolder,
-        fileFilter
+        fileFilter,
+        isUsed
 
-    }
+}
     
     public partial class UserConfig : Form
     {
@@ -28,6 +29,7 @@ namespace FileSync
         {
             public string changInfo;
             public ConfigChangeType changeType;
+            public int configrationGroupIndex;
 
         }
         public UserConfig()
@@ -61,6 +63,7 @@ namespace FileSync
             ConfigChangeInfo configChangeInfo = new ConfigChangeInfo();
             configChangeInfo.changInfo = textBox_serverAddress.Text;
             configChangeInfo.changeType = ConfigChangeType.serverAddress;
+            configChangeInfo.configrationGroupIndex = _currentUsedConfigurationIndex;
             configChanged?.Invoke(sender, configChangeInfo);
         }
 
@@ -69,6 +72,7 @@ namespace FileSync
             ConfigChangeInfo configChangeInfo = new ConfigChangeInfo();
             configChangeInfo.changInfo = textBox_userName.Text;
             configChangeInfo.changeType = ConfigChangeType.userName;
+            configChangeInfo.configrationGroupIndex = _currentUsedConfigurationIndex;
             configChanged?.Invoke(sender, configChangeInfo);
         }
 
@@ -77,6 +81,7 @@ namespace FileSync
             ConfigChangeInfo configChangeInfo = new ConfigChangeInfo();
             configChangeInfo.changInfo = textBox_passWord.Text;
             configChangeInfo.changeType = ConfigChangeType.passWord;
+            configChangeInfo.configrationGroupIndex = _currentUsedConfigurationIndex;
             configChanged?.Invoke(sender, configChangeInfo);
         }
 
@@ -85,6 +90,7 @@ namespace FileSync
             ConfigChangeInfo configChangeInfo = new ConfigChangeInfo();
             configChangeInfo.changInfo = textBox_localFolder.Text;
             configChangeInfo.changeType = ConfigChangeType.localFolder;
+            configChangeInfo.configrationGroupIndex = _currentUsedConfigurationIndex;
             configChanged?.Invoke(sender,configChangeInfo);
         }
 
@@ -93,6 +99,7 @@ namespace FileSync
             ConfigChangeInfo configChangeInfo = new ConfigChangeInfo();
             configChangeInfo.changInfo = textBox_remoteFolder.Text;
             configChangeInfo.changeType = ConfigChangeType.remoteFolder;
+            configChangeInfo.configrationGroupIndex = _currentUsedConfigurationIndex;
             configChanged?.Invoke(sender, configChangeInfo);
         }
 
@@ -113,35 +120,52 @@ namespace FileSync
         private void textBox_fileFilter_TextChanged(object sender, EventArgs e)
         {
             ConfigChangeInfo configChangeInfo = new ConfigChangeInfo();
-            configChangeInfo.changInfo = textBox_fileFilter.Text;
+            // use the is to cast the sender
+            if (sender is TextBox textBox)
+            {
+                configChangeInfo.changInfo = textBox.Text;
+            }
             configChangeInfo.changeType = ConfigChangeType.fileFilter;
+            configChangeInfo.configrationGroupIndex = _currentUsedConfigurationIndex;
             configChanged?.Invoke(sender, configChangeInfo);
         }
 
         private void comboBox_Configuration_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (comboBox_Configuration.SelectedIndex >= 0)
+            if (comboBox_Configuration.SelectedIndex >= 0 && _currentUsedConfigurationIndex != comboBox_Configuration.SelectedIndex)
             {
                 _currentUsedConfigurationIndex = comboBox_Configuration.SelectedIndex;
-                updateConfiguration(_userConfigList[_currentUsedConfigurationIndex]);
+                updateConfiguration(sender,userConfigList[_currentUsedConfigurationIndex]);
             }
+
+        }
+        private void updateConfiguration(object sender,ConfigInfo configInfo)
+        {
+            textBox_serverAddress.Text = configInfo.serverAddress;
+            textBox_userName.Text = configInfo.userName;
+            textBox_passWord.Text = Base64Helper.Base64Dncode(configInfo.passWord);
+            textBox_localFolder.Text = configInfo.localFolder;
+            textBox_remoteFolder.Text = configInfo.remoteFolder;
+            textBox_fileFilter.Text = configInfo.fileFilter;
+            ConfigChangeInfo configChangeInfo = new ConfigChangeInfo();
+            configChangeInfo.changeType = ConfigChangeType.isUsed;
+            configChangeInfo.configrationGroupIndex = _currentUsedConfigurationIndex;
+            configChanged?.Invoke(sender, configChangeInfo);
+
+        }
+        public List<ConfigInfo> userConfigList { get; set; }
+        private int _currentUsedConfigurationIndex { get; set; }
+        public class ConfigInfo
+        {
+            public string configrationName { get; set; }
+            public string serverAddress { get; set; } 
+            public string userName { get; set; }
+            public string passWord { get; set; }
+            public string localFolder { get; set; }
+            public string fileFilter { get; set; }
+            public string remoteFolder { get; set; }
+            public bool isUsed { get; set; }
             
-        }
-        private void updateConfiguration(ConfigInfo configInfo)
-        {
-
-
-        }
-        private List<ConfigInfo> _userConfigList = new List<ConfigInfo>();
-        private int _currentUsedConfigurationIndex;
-        class ConfigInfo
-        {
-            public string localFolder = "";
-            public string serverAddress = "";
-            public string userName = "";
-            public string passWord = "";
-            public string remoteFolder = "";
-            public string fileFilter = "";
         }
     }
 }

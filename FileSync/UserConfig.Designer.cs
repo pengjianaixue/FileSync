@@ -301,7 +301,7 @@
         private System.Windows.Forms.Label label6;
         public System.Windows.Forms.TextBox textBox_fileFilter;
         private System.Windows.Forms.Label label7;
-        private System.Windows.Forms.ComboBox comboBox_Configuration;
         private System.Windows.Forms.BindingSource mainFormBindingSource;
+        public System.Windows.Forms.ComboBox comboBox_Configuration;
     }
 }

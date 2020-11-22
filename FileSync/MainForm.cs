@@ -12,6 +12,10 @@ using Renci.SshNet.Sftp;
 using Renci.SshNet;
 using System.Threading;
 using Renci;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Serialization;
+
 
 namespace FileSync
 {
@@ -28,8 +32,8 @@ namespace FileSync
             userConfig.configChanged += UserConfig_configChanged;
             userConfig.Hide();
             fileWachter.MonitorFileChanged += FileWachter_MonitorFileChanged;
-            _configFileName = Environment.CurrentDirectory + "/config.ini";
-            configLoad();
+            _configFileName = Environment.CurrentDirectory + "/config.json";
+            configLoad(_configFileName);
             clearView();
             Task.Factory.StartNew(()=>sshChannelCreate());
             // not use 
@@ -55,7 +59,7 @@ namespace FileSync
                 isNeedAutoReconnect = false;
             }
         }
-        private void sshChannelCreate()
+        private bool sshChannelCreate()
         {
             
             try
@@ -64,85 +68,131 @@ namespace FileSync
                 {
                     _sftpClient = new SftpClient(_serverAddress, _userName, _userPassWd);
                     _sftpClient.Connect();
+                    _sftpClient.KeepAliveInterval = new System.TimeSpan(TimeSpan.TicksPerSecond*30);
                     _sftpClient.ErrorOccurred += _sftpClient_ErrorOccurred;
+                    return true;
                 }
+                return false;
             }
             catch (System.Exception ex)
             {
                 MessageBox.Show(string.Format("sftp connect is failed Error info: {0}, pelase check connect config!", ex.Message), 
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
 
             }
         }
-        private void configLoad()
+
+        private void setCurrentUserConfirationVar(UserConfig.ConfigInfo item)
         {
-
-            _monitorPath = IniFileOperator.getKeyValue(ConfigChangeType.localFolder.ToString(), _configFileName);
-            if (_monitorPath.Length > 0)
-            {
-                fileWachter.startWatchProcess(_monitorPath);
-            }
-            _serverAddress = IniFileOperator.getKeyValue(ConfigChangeType.serverAddress.ToString(), _configFileName);
-            _userName = IniFileOperator.getKeyValue(ConfigChangeType.userName.ToString(), _configFileName);
-            _userPassWd = IniFileOperator.getKeyValue(ConfigChangeType.passWord.ToString(), _configFileName);
-            _remotePath = IniFileOperator.getKeyValue(ConfigChangeType.remoteFolder.ToString(), _configFileName);
-            string fileFilters =  IniFileOperator.getKeyValue(ConfigChangeType.fileFilter.ToString(), _configFileName);
             string[] splitchar = new string[] { ";" };
-            _fileFilter = fileFilters.Split(splitchar, StringSplitOptions.RemoveEmptyEntries);
-            userConfig.textBox_fileFilter.Text = fileFilters;
-            userConfig.textBox_serverAddress.Text = _serverAddress;
-            userConfig.textBox_localFolder.Text = _monitorPath;
-            userConfig.textBox_passWord.Text = _userPassWd;
-            userConfig.textBox_userName.Text = _userName;
-            userConfig.textBox_remoteFolder.Text = _remotePath;
+            _fileFilter = item.fileFilter.Split(splitchar, StringSplitOptions.RemoveEmptyEntries);
+            _serverAddress = item.serverAddress;
+            _userName = item.userName;
+            _userPassWd = Base64Helper.Base64Dncode(item.passWord);
+            _monitorPath = item.localFolder;
+            StartMonitor(_monitorPath);
+            _remotePath = item.remoteFolder;
+        }
 
+        private void configLoad(string filePath)
+        {
+            _userconfigList = JsonHelper.JsonConverToList<UserConfig.ConfigInfo>(File.ReadAllText(filePath));
+            userConfig.userConfigList = _userconfigList;
+            foreach (UserConfig.ConfigInfo item in _userconfigList)
+            {
+                userConfig.comboBox_Configuration.Items.Add(item.configrationName);
+                if (item.isUsed)
+                {
+                    setCurrentUserConfirationVar(item);
+                    userConfig.textBox_fileFilter.Text = item.fileFilter;
+                    userConfig.textBox_serverAddress.Text = _serverAddress;
+                    userConfig.textBox_localFolder.Text = _monitorPath;
+                    userConfig.textBox_passWord.Text = _userPassWd;
+                    userConfig.textBox_userName.Text = _userName;
+                    userConfig.textBox_remoteFolder.Text = _remotePath;
+                    userConfig.comboBox_Configuration.Text = item.configrationName;
+                }
+                
+            }
+            
+            
+
+        }
+        private void recordUserConfigration(string filePath)
+        {
+            lock (configSaveLocker)
+            {
+                using (StreamWriter file = File.CreateText(filePath))
+                {
+                    JsonSerializer serializer = new JsonSerializer();
+                    serializer.Formatting = Formatting.Indented;
+                    serializer.Serialize(file, _userconfigList);
+                }
+            }
+            
+
+        }
+
+        private void StartMonitor(string path)
+        {
+            if (path.Length > 0 && Directory.Exists(path))
+            {
+                fileWachter.startWatchProcess(path);
+            }
         }
         private void UserConfig_configChanged(object sender, UserConfig.ConfigChangeInfo configChangeType)
         {
+            _userconfigList[_currentConfigUsed].isUsed = false;
+            _currentConfigUsed = configChangeType.configrationGroupIndex;
+            _userconfigList[_currentConfigUsed].isUsed = true;
             switch (configChangeType.changeType)
             {
                 case ConfigChangeType.localFolder:
                     _monitorPath = configChangeType.changInfo;
-                    IniFileOperator.setKeyValue(ConfigChangeType.localFolder.ToString(), _monitorPath, _configFileName);
-                    fileWachter.startWatchProcess(_monitorPath);
+                    _userconfigList[_currentConfigUsed].localFolder = configChangeType.changInfo;
+                    StartMonitor(_monitorPath);
                     break;
                 case ConfigChangeType.serverAddress:
                     if (_serverAddress != configChangeType.changInfo)
                     {
                         _serverAddress = configChangeType.changInfo;
+                        _userconfigList[_currentConfigUsed].serverAddress = configChangeType.changInfo;
                         connectInfoIsChanged = true;
-                        IniFileOperator.setKeyValue(ConfigChangeType.serverAddress.ToString(), _serverAddress, _configFileName);
                     }
                     break;
                 case ConfigChangeType.userName:
                     if (_userName != configChangeType.changInfo)
                     {
                         _userName = configChangeType.changInfo;
+                        _userconfigList[_currentConfigUsed].userName = configChangeType.changInfo;
                         connectInfoIsChanged = true;
-                        IniFileOperator.setKeyValue(ConfigChangeType.userName.ToString(), _userName, _configFileName);
                     }
                     break;
                 case ConfigChangeType.passWord:
                     if (_userPassWd != configChangeType.changInfo)
                     {
                         _userPassWd = configChangeType.changInfo;
+                        _userconfigList[_currentConfigUsed].passWord = Base64Helper.Base64Encode(configChangeType.changInfo);
                         connectInfoIsChanged = true;
-                        IniFileOperator.setKeyValue(ConfigChangeType.passWord.ToString(), _userPassWd, _configFileName);
                     }
                     break;
                 case ConfigChangeType.remoteFolder:
                     _remotePath = configChangeType.changInfo;
-                    IniFileOperator.setKeyValue(ConfigChangeType.remoteFolder.ToString(), _remotePath, _configFileName);
+                    _userconfigList[_currentConfigUsed].remoteFolder = configChangeType.changInfo;
                     break;
                 case ConfigChangeType.fileFilter:
+                    _userconfigList[_currentConfigUsed].remoteFolder = configChangeType.changInfo;
                     string[] splitchar = new string[] { ";" };
                     _fileFilter = configChangeType.changInfo.Split(splitchar, StringSplitOptions.RemoveEmptyEntries);
-                    IniFileOperator.setKeyValue(ConfigChangeType.fileFilter.ToString(), configChangeType.changInfo, _configFileName);
+                    break;
+                case ConfigChangeType.isUsed:
+                    setCurrentUserConfirationVar(_userconfigList[_currentConfigUsed]);
                     break;
                 default:
                     break;
             }
-
+            Task.Factory.StartNew(()=>recordUserConfigration(_configFileName));
         }
 
         private void addChangedFileRow(ref FileChangeInfo fileChangeInfo)
@@ -341,8 +391,12 @@ namespace FileSync
                 {
                     if (connectInfoIsChanged || _sftpClient == null)
                     {
-                        sshChannelCreate();
+                        if (!sshChannelCreate())
+                        {
+                            return false;
+                        }
                         connectInfoIsChanged = false;
+
                     }
                 }
                 if (_sftpClient != null && !_sftpClient.IsConnected)
@@ -518,6 +572,7 @@ namespace FileSync
         private volatile static bool isInDownload = false;
         private readonly static object UILockObj = new object();
         private readonly static object sftpLocker = new object();
+        private readonly static object  configSaveLocker = new object();
         private SftpClient _sftpClient ;
         private FileTransfer fileTransfer = new FileTransfer(4);
         private delegate int ActionCall<in T>(T t);
@@ -535,6 +590,9 @@ namespace FileSync
         private bool isPause = false;
         private bool connectInfoIsChanged = false;
         private bool isNeedAutoReconnect;
+        private List<UserConfig.ConfigInfo> _userconfigList = new List<UserConfig.ConfigInfo>();
+        private int _currentConfigUsed;
+
         private void resetToolStripMenuItem_Click(object sender, EventArgs e)
         {
             _fileIndexDic.Clear();
