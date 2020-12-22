@@ -49,6 +49,7 @@
             this.UpLoad = new System.Windows.Forms.DataGridViewButtonColumn();
             this.Downlaod = new System.Windows.Forms.DataGridViewButtonColumn();
             this.igroneThisTime = new System.Windows.Forms.DataGridViewButtonColumn();
+            this.gitDisToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.contextMenuStrip_backgroud.SuspendLayout();
             this.statusStrip_infoBar.SuspendLayout();
@@ -62,7 +63,8 @@
             this.syncFolderToolStripMenuItem,
             this.resetToolStripMenuItem,
             this.pauseToolStripMenuItem,
-            this.realTimeSyncToolStripMenuItem});
+            this.realTimeSyncToolStripMenuItem,
+            this.gitDisToolStripMenuItem});
             resources.ApplyResources(this.menuStrip1, "menuStrip1");
             this.menuStrip1.Name = "menuStrip1";
             // 
@@ -190,6 +192,12 @@
             this.igroneThisTime.Text = "Ignore";
             this.igroneThisTime.UseColumnTextForButtonValue = true;
             // 
+            // gitDisToolStripMenuItem
+            // 
+            this.gitDisToolStripMenuItem.Name = "gitDisToolStripMenuItem";
+            resources.ApplyResources(this.gitDisToolStripMenuItem, "gitDisToolStripMenuItem");
+            this.gitDisToolStripMenuItem.Click += new System.EventHandler(this.gitDisToolStripMenuItem_Click);
+            // 
             // MainForm
             // 
             resources.ApplyResources(this, "$this");
@@ -231,6 +239,7 @@
         private System.Windows.Forms.DataGridViewButtonColumn Downlaod;
         private System.Windows.Forms.DataGridViewButtonColumn igroneThisTime;
         private System.Windows.Forms.ToolStripMenuItem realTimeSyncToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem gitDisToolStripMenuItem;
     }
 }
 

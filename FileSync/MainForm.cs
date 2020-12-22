@@ -15,6 +15,7 @@ using Renci;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
+using System.Text.RegularExpressions;
 
 
 namespace FileSync
@@ -33,11 +34,12 @@ namespace FileSync
             userConfig.Hide();
             fileWachter.MonitorFileChanged += FileWachter_MonitorFileChanged;
             _configFileName = Environment.CurrentDirectory + "/config.json";
+            _gitExePath = Environment.CurrentDirectory + "/git.exe";
             configLoad(_configFileName);
             clearView();
             Task.Factory.StartNew(()=>sshChannelCreate());
             // not use 
-            fileTransfer.programPath = "";
+            CommandRunner.programPath = _gitExePath;
             
 
         }
@@ -574,7 +576,7 @@ namespace FileSync
         private readonly static object sftpLocker = new object();
         private readonly static object  configSaveLocker = new object();
         private SftpClient _sftpClient ;
-        private FileTransfer fileTransfer = new FileTransfer(4);
+        private FileTransfer CommandRunner = new FileTransfer(4);
         private delegate int ActionCall<in T>(T t);
         private string _configFileName = "";
         private string _monitorPath = "";
@@ -592,6 +594,7 @@ namespace FileSync
         private bool isNeedAutoReconnect;
         private List<UserConfig.ConfigInfo> _userconfigList = new List<UserConfig.ConfigInfo>();
         private int _currentConfigUsed;
+        private string _gitExePath = "";
 
         private void resetToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -659,6 +662,32 @@ namespace FileSync
             }
             
 
+        }
+
+        private void gitDisToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            int processId =  CommandRunner.executeCommand("status");
+            string statusInfo = "";
+            CommandRunner.processIsFinishedWithSucess(processId ,out statusInfo);
+            if (statusInfo.Length == 0)
+            {
+                MessageBox.Show(string.Format("git status command execute failed !"), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            else
+            {
+                string modifyPattern = @"^.*modified:.*(\S).*$";
+                foreach (Match match in Regex.Matches(statusInfo, modifyPattern))
+                { 
+                                    
+                
+                }
+                string newAddPattern = @".*Untracked files:.*(\S).*";
+                foreach (Match match in Regex.Matches(statusInfo, newAddPattern))
+                {
+
+
+                }
+            }
         }
     }
 }

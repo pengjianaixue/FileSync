@@ -128,7 +128,7 @@ namespace FileSync
                 {
                     processBundle.process.Kill();
                     Interlocked.Exchange(ref processBundle.isUsed, 0);
-                    info = "Programm is not finished";
+                    info = "Program is not finished";
                     return false;
                 }
             }
@@ -141,7 +141,7 @@ namespace FileSync
                 if (item.isUsed != 1)
                 {
                     item.process.StartInfo.FileName = programPath;
-                    item.process.StartInfo.Arguments = "-c " + command;
+                    item.process.StartInfo.Arguments = " " + command;
                     LogHelper.writeInfoLog(string.Format("send command: {0}", command));
                     item.process.Start();
                     Interlocked.Exchange(ref item.isUsed, 1);
@@ -164,7 +164,7 @@ namespace FileSync
 
         }
 
-        public int executeWSLBashCommand(string command)
+        public int executeCommand(string command)
         {
 
             return runCommand(command);
