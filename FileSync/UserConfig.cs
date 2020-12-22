@@ -16,6 +16,7 @@ namespace FileSync
         serverAddress,
         userName,
         passWord,
+        gitProgramPath,
         remoteFolder,
         fileFilter,
         isUsed
@@ -162,10 +163,20 @@ namespace FileSync
             public string userName { get; set; }
             public string passWord { get; set; }
             public string localFolder { get; set; }
+            public string gitProgramPath { get; set; }
             public string fileFilter { get; set; }
             public string remoteFolder { get; set; }
             public bool isUsed { get; set; }
             
+        }
+
+        private void textBox_GitProgramPath_TextChanged(object sender, EventArgs e)
+        {
+            ConfigChangeInfo configChangeInfo = new ConfigChangeInfo();
+            configChangeInfo.changInfo = textBox_GitProgramPath.Text;
+            configChangeInfo.changeType = ConfigChangeType.gitProgramPath;
+            configChangeInfo.configrationGroupIndex = _currentUsedConfigurationIndex;
+            configChanged?.Invoke(sender, configChangeInfo);
         }
     }
 }

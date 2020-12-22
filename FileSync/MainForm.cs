@@ -112,6 +112,7 @@ namespace FileSync
                     userConfig.textBox_userName.Text = _userName;
                     userConfig.textBox_remoteFolder.Text = _remotePath;
                     userConfig.comboBox_Configuration.Text = item.configrationName;
+                    userConfig.textBox_GitProgramPath.Text = item.gitProgramPath;
                 }
                 
             }
@@ -176,6 +177,10 @@ namespace FileSync
                         _userconfigList[_currentConfigUsed].passWord = Base64Helper.Base64Encode(configChangeType.changInfo);
                         connectInfoIsChanged = true;
                     }
+                    break;
+                case ConfigChangeType.gitProgramPath:
+                    _gitProgramPath = configChangeType.changInfo;
+                    _userconfigList[_currentConfigUsed].gitProgramPath = configChangeType.changInfo;
                     break;
                 case ConfigChangeType.remoteFolder:
                     _remotePath = configChangeType.changInfo;
@@ -583,6 +588,7 @@ namespace FileSync
         private string _userPassWd = "";
         private string _remotePath = "";
         private string[] _fileFilter = { };
+        private string _gitProgramPath = "";
         private FileWachter fileWachter = new FileWachter();
         private UserConfig userConfig = new UserConfig();
         private List<Tuple<string, string, string>> changedFileList = new List<Tuple<string, string, string>>();
@@ -658,6 +664,11 @@ namespace FileSync
                 });
             }
             
+
+        }
+
+        private void gitChangedToolStripMenuItem_Click(object sender, EventArgs e)
+        {
 
         }
     }
