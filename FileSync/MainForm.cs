@@ -671,9 +671,6 @@ namespace FileSync
 
         private void gitChangedToolStripMenuItem_Click(object sender, EventArgs e)
         {
-
-        private void gitDisToolStripMenuItem_Click(object sender, EventArgs e)
-        {
             int processId =  CommandRunner.executeCommand("status");
             string statusInfo = "";
             CommandRunner.processIsFinishedWithSucess(processId ,out statusInfo);
