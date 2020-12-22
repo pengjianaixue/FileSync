@@ -34,12 +34,11 @@ namespace FileSync
             userConfig.Hide();
             fileWachter.MonitorFileChanged += FileWachter_MonitorFileChanged;
             _configFileName = Environment.CurrentDirectory + "/config.json";
-            _gitExePath = Environment.CurrentDirectory + "/git.exe";
             configLoad(_configFileName);
             clearView();
             Task.Factory.StartNew(()=>sshChannelCreate());
             // not use 
-            CommandRunner.programPath = _gitExePath;
+            CommandRunner.programPath = _gitProgramPath;
             
 
         }
@@ -671,9 +670,6 @@ namespace FileSync
 
         private void gitChangedToolStripMenuItem_Click(object sender, EventArgs e)
         {
-
-        private void gitDisToolStripMenuItem_Click(object sender, EventArgs e)
-        {
             int processId =  CommandRunner.executeCommand("status");
             string statusInfo = "";
             CommandRunner.processIsFinishedWithSucess(processId ,out statusInfo);
@@ -685,9 +681,14 @@ namespace FileSync
             {
                 string modifyPattern = @"^.*modified:.*(\S).*$";
                 foreach (Match match in Regex.Matches(statusInfo, modifyPattern))
-                { 
-                                    
-                
+                {
+                    if (match.Success)
+                    {
+                        match.ToString();
+                    }
+                    
+
+
                 }
                 string newAddPattern = @".*Untracked files:.*(\S).*";
                 foreach (Match match in Regex.Matches(statusInfo, newAddPattern))
