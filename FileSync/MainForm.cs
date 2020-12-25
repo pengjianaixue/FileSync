@@ -580,6 +580,7 @@ namespace FileSync
         private volatile static bool isInDownload = false;
         private readonly static object UILockObj = new object();
         private readonly static object sftpLocker = new object();
+        private readonly static object gitReadLocker = new object();
         private readonly static object  configSaveLocker = new object();
         private SftpClient _sftpClient ;
         private FileTransfer CommandRunner = new FileTransfer(4);
@@ -669,12 +670,11 @@ namespace FileSync
             
 
         }
-
-        private void gitChangedToolStripMenuItem_Click(object sender, EventArgs e)
+        private void getGitModifyFileList()
         {
-            int processId =  CommandRunner.runCommand(_monitorPath, "status");
+            int processId = CommandRunner.runCommand(_monitorPath, "status");
             string statusInfo = "";
-            CommandRunner.processIsFinishedWithSucess(processId ,out statusInfo);
+            CommandRunner.processIsFinishedWithSucess(processId, out statusInfo);
             if (statusInfo.Length == 0)
             {
                 MessageBox.Show(string.Format("git status command execute failed !"), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -687,8 +687,8 @@ namespace FileSync
                     if (match.Success)
                     {
                         string fileInfo = match.Value;
-                        string[] fileInfoSplited =  fileInfo.Split(':');
-                        string fileName =  fileInfoSplited.Last().TrimStart().Replace("/",@"\");
+                        string[] fileInfoSplited = fileInfo.Split(':');
+                        string fileName = fileInfoSplited.Last().TrimStart().Replace("/", @"\");
                         FileChangeInfo fileChangeInfo = new FileChangeInfo();
                         fileChangeInfo.changeTime = DateTime.Now.ToLocalTime().ToString();
                         fileChangeInfo.changeType = WatcherChangeTypes.Changed;
@@ -703,6 +703,16 @@ namespace FileSync
 
                 //}
             }
+        }
+
+        private void gitChangedToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Task.Factory.StartNew(()=> {
+                lock (gitReadLocker)
+                {
+                    getGitModifyFileList();
+                }
+            });
         }
     }
 }
