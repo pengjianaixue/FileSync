@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
-
+ 
 namespace FileSync
 {
     class ProcessBundle
@@ -96,15 +96,18 @@ namespace FileSync
             }
             if (processBundle.process.HasExited)
             {
+                //processBundle.process.CancelOutputRead();
+                //processBundle.process.CancelErrorRead();
                 if (!processBundle.isError && 
                     processBundle.process.ExitCode == 0)
                 {
 
                     Interlocked.Exchange(ref processBundle.isUsed, 0);
-                    info = processBundle.stdoutInfo;
+                    info = processBundle.process.StandardOutput.ReadToEnd();
                     return true;
                 }
-                info = processBundle.stderrorInfo;
+                //info = processBundle.stderrorInfo;
+                info = processBundle.process.StandardError.ReadToEnd();
                 Interlocked.Exchange(ref processBundle.isUsed, 0);
                 return false;
             }
@@ -113,19 +116,23 @@ namespace FileSync
                 processBundle.process.WaitForExit(20000);
                 if (processBundle.process.HasExited)
                 {
+                    //processBundle.process.CancelOutputRead();
+                    //processBundle.process.CancelErrorRead();
                     if (!processBundle.isError &&
                         processBundle.process.ExitCode == 0)
                     {
                         Interlocked.Exchange(ref processBundle.isUsed, 0);
-                        info = processBundle.stdoutInfo;
+                        info = processBundle.process.StandardOutput.ReadToEnd();
                         return true;
                     }
                     Interlocked.Exchange(ref processBundle.isUsed, 0);
-                    info = processBundle.stderrorInfo;
+                    info = processBundle.process.StandardError.ReadToEnd();
                     return false;
                 }
                 else
                 {
+                    //processBundle.process.CancelOutputRead();
+                    //processBundle.process.CancelErrorRead();
                     processBundle.process.Kill();
                     Interlocked.Exchange(ref processBundle.isUsed, 0);
                     info = "Program is not finished";
@@ -134,16 +141,19 @@ namespace FileSync
             }
         }
 
-        private bool findProcessToRunCmd(string command, out int processId)
+        private bool findProcessToRunCmd(string workingDirectory, string command, out int processId)
         {
             foreach (var item in processesList)
             {
                 if (item.isUsed != 1)
                 {
                     item.process.StartInfo.FileName = programPath;
+                    item.process.StartInfo.WorkingDirectory = workingDirectory;
                     item.process.StartInfo.Arguments = " " + command;
                     LogHelper.writeInfoLog(string.Format("send command: {0}", command));
                     item.process.Start();
+                    //item.process.BeginOutputReadLine();
+                    //item.process.BeginErrorReadLine();
                     Interlocked.Exchange(ref item.isUsed, 1);
                     processId =  item.processId;
                     return true;
@@ -153,21 +163,14 @@ namespace FileSync
             return false;
         }
 
-        private int runCommand(string command)
+        public int runCommand(string workingDirectory, string command)
         {
             int processId = -1;
-            while (!findProcessToRunCmd(command,out processId))
+            while (!findProcessToRunCmd(workingDirectory,command, out processId))
             {
                 Thread.Sleep(100);
             }
             return processId;
-
-        }
-
-        public int executeCommand(string command)
-        {
-
-            return runCommand(command);
 
         }
 

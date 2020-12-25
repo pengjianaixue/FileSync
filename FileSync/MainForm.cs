@@ -94,6 +94,7 @@ namespace FileSync
             _monitorPath = item.localFolder;
             StartMonitor(_monitorPath);
             _remotePath = item.remoteFolder;
+            _gitProgramPath = item.gitProgramPath;
         }
 
         private void configLoad(string filePath)
@@ -113,7 +114,7 @@ namespace FileSync
                     userConfig.textBox_userName.Text = _userName;
                     userConfig.textBox_remoteFolder.Text = _remotePath;
                     userConfig.comboBox_Configuration.Text = item.configrationName;
-                    userConfig.textBox_GitProgramPath.Text = item.gitProgramPath;
+                    userConfig.textBox_GitProgramPath.Text = _gitProgramPath;
                 }
                 
             }
@@ -188,7 +189,7 @@ namespace FileSync
                     _userconfigList[_currentConfigUsed].remoteFolder = configChangeType.changInfo;
                     break;
                 case ConfigChangeType.fileFilter:
-                    _userconfigList[_currentConfigUsed].remoteFolder = configChangeType.changInfo;
+                    _userconfigList[_currentConfigUsed].fileFilter = configChangeType.changInfo;
                     string[] splitchar = new string[] { ";" };
                     _fileFilter = configChangeType.changInfo.Split(splitchar, StringSplitOptions.RemoveEmptyEntries);
                     break;
@@ -227,7 +228,8 @@ namespace FileSync
             }
             else
             {
-                FileChangeGridView.Rows.Add(row);
+                int index = FileChangeGridView.Rows.Add(row);
+                _fileIndexDic.Add(fileChangeInfo.fullPath, index);
             }
 
         }
@@ -670,7 +672,7 @@ namespace FileSync
 
         private void gitChangedToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            int processId =  CommandRunner.executeCommand("status");
+            int processId =  CommandRunner.runCommand(_monitorPath, "status");
             string statusInfo = "";
             CommandRunner.processIsFinishedWithSucess(processId ,out statusInfo);
             if (statusInfo.Length == 0)
@@ -679,23 +681,27 @@ namespace FileSync
             }
             else
             {
-                string modifyPattern = @"^.*modified:.*(\S).*$";
+                string modifyPattern = @".*modified:.*(\S)";
                 foreach (Match match in Regex.Matches(statusInfo, modifyPattern))
                 {
                     if (match.Success)
                     {
-                        match.ToString();
+                        string fileInfo = match.Value;
+                        string[] fileInfoSplited =  fileInfo.Split(':');
+                        string fileName =  fileInfoSplited.Last().TrimStart().Replace("/",@"\");
+                        FileChangeInfo fileChangeInfo = new FileChangeInfo();
+                        fileChangeInfo.changeTime = DateTime.Now.ToLocalTime().ToString();
+                        fileChangeInfo.changeType = WatcherChangeTypes.Changed;
+                        fileChangeInfo.fullPath = _monitorPath + @"\" + fileName;
+                        updateFileList(ref fileChangeInfo);
                     }
-                    
-
-
                 }
-                string newAddPattern = @".*Untracked files:.*(\S).*";
-                foreach (Match match in Regex.Matches(statusInfo, newAddPattern))
-                {
+                //string newAddPattern = @".*Untracked files:.*(\S).*";
+                //foreach (Match match in Regex.Matches(statusInfo, newAddPattern))
+                //{
 
 
-                }
+                //}
             }
         }
     }

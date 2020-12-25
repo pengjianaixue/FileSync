@@ -148,6 +148,7 @@ namespace FileSync
             textBox_localFolder.Text = configInfo.localFolder;
             textBox_remoteFolder.Text = configInfo.remoteFolder;
             textBox_fileFilter.Text = configInfo.fileFilter;
+            textBox_GitProgramPath.Text = configInfo.gitProgramPath;
             ConfigChangeInfo configChangeInfo = new ConfigChangeInfo();
             configChangeInfo.changeType = ConfigChangeType.isUsed;
             configChangeInfo.configrationGroupIndex = _currentUsedConfigurationIndex;
