@@ -24,7 +24,11 @@ namespace FileSync
 
 
 
-    
+    struct FileSyncInfo
+    {
+       public string fileFullPath;
+       public int dataTableIndex;
+    }
 
     public partial class MainForm : Form
     {
@@ -203,7 +207,7 @@ namespace FileSync
             Task.Factory.StartNew(()=>recordUserConfigration(_configFileName));
         }
 
-        private void addChangedFileRow(ref FileChangeInfo fileChangeInfo)
+        private int addChangedFileRow(ref FileChangeInfo fileChangeInfo)
         {
             DataGridViewRow row = new DataGridViewRow();
             DataGridViewTextBoxCell fileFullPath = new DataGridViewTextBoxCell();
@@ -217,6 +221,7 @@ namespace FileSync
             row.Cells.Add(changTypeName);
             //DataGridViewComboBoxCell comboxcell = new DataGridViewComboBoxCell();
             //row.Cells.Add(comboxcell);
+            int index = 0;
             Action<DataGridViewRow> addRowAction = (data) =>
             {
                 FileChangeGridView.Rows.Add(data);
@@ -224,14 +229,15 @@ namespace FileSync
             if (FileChangeGridView.InvokeRequired)
             {
                 ActionCall<DataGridViewRow> addRow = new ActionCall<DataGridViewRow>( (DataGridViewRow rowData) => { return FileChangeGridView.Rows.Add(rowData); });
-                int index =  (int)this.Invoke(addRow, row);
+                index =  (int)this.Invoke(addRow, row);
                 _fileIndexDic.Add(fileChangeInfo.fullPath, index);
             }
             else
             {
-                int index = FileChangeGridView.Rows.Add(row);
+                index = FileChangeGridView.Rows.Add(row);
                 _fileIndexDic.Add(fileChangeInfo.fullPath, index);
             }
+            return index;
 
         }
         private void resizeColumn(int column)
@@ -280,19 +286,22 @@ namespace FileSync
             }
             if (!_fileIndexDic.ContainsKey(fileChangeInfo.fullPath))
             {
-                addChangedFileRow(ref fileChangeInfo);
+                int index =  addChangedFileRow(ref fileChangeInfo);
                 FileChangeInfo tempChangeInfo = fileChangeInfo;
                 if (isRealTimeSyncEnable)
                 {
-                    Task.Factory.StartNew(() =>
+                    TimeSpan duration = DateTime.Now - _preChangeTime;
+                    _preChangeTime = DateTime.Now;
+                    if (duration.TotalMilliseconds < 500)
                     {
-                        Timer changeDurTimer = new System.Timers.Timer();
-                        changeDurTimer.Interval = 500;
-                        changeDurTimer.Elapsed += ChangeDurTimer_Elapsed;
-                        uploadFile(tempChangeInfo.fullPath);
+                        stopRealTimeSync();
                     }
-                    );
-                    
+                    else
+                    {
+                        _nextSyncFileInfo.fileFullPath = fileChangeInfo.fullPath;
+                        _nextSyncFileInfo.dataTableIndex = index;
+                        _haseChanged = true;
+                    }                    
                 }
             }
             else
@@ -311,7 +320,24 @@ namespace FileSync
 
         private void ChangeDurTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
-            //throw new NotImplementedException();
+            if (_haseChanged)
+            {
+                Task.Factory.StartNew(() =>
+                {
+                    updateUploadStatusDisplay(_nextSyncFileInfo.dataTableIndex, "Uploading", _nextSyncFileInfo.fileFullPath);
+                    if (!uploadFile(_nextSyncFileInfo.fileFullPath))
+                    {
+                        updateUploadStatusDisplay(_nextSyncFileInfo.dataTableIndex, "Upload", _nextSyncFileInfo.fileFullPath);
+                        return;
+                    }
+                    removeFileItem(_nextSyncFileInfo.dataTableIndex, _nextSyncFileInfo.fileFullPath);
+                    return;
+                }
+                );
+                _haseChanged = false;
+            }
+            
+            
         }
 
         private void FileWachter_MonitorFileChanged(object sender, FileChangeInfo fileChangeInfo)
@@ -386,7 +412,7 @@ namespace FileSync
                 }
             }
             );
-            lock (UILockObj)
+            lock (_uiLockObj)
             {
                 FileChangeGridView.Invoke(mi);
             }
@@ -493,7 +519,7 @@ namespace FileSync
                 resizeColumn(3);
                 uploadButton.Value = status;
             });
-            lock (UILockObj)
+            lock (_uiLockObj)
             {
                 LogHelper.writeInfoLog(string.Format("change upload status:{0} !", displayStatus));
                 FileChangeGridView.Invoke(mi, displayStatus);
@@ -544,7 +570,7 @@ namespace FileSync
             }
             try
             {
-                using (var stream = File.Open(fullFilePath, FileMode.Open))
+                using (var stream = File.Open(fullFilePath, FileMode.Open, FileAccess.Read))
                 {
                     _sftpClient.UploadFile(stream, remoteFilePath, true);
                 }
@@ -596,33 +622,7 @@ namespace FileSync
                 }
             }
         }
-        private volatile static string downloadingFile = "";
-        private volatile static bool isInDownload = false;
-        private readonly static object UILockObj = new object();
-        private readonly static object sftpLocker = new object();
-        private readonly static object gitReadLocker = new object();
-        private readonly static object  configSaveLocker = new object();
-        private SftpClient _sftpClient ;
-        private FileTransfer CommandRunner = new FileTransfer(4);
-        private delegate int ActionCall<in T>(T t);
-        private string _configFileName = "";
-        private string _monitorPath = "";
-        private string _serverAddress = "";
-        private string _userName = "";
-        private string _userPassWd = "";
-        private string _remotePath = "";
-        private string[] _fileFilter = { };
-        private string _gitProgramPath = "";
-        private FileWachter fileWachter = new FileWachter();
-        private UserConfig userConfig = new UserConfig();
-        private List<Tuple<string, string, string>> changedFileList = new List<Tuple<string, string, string>>();
-        private Dictionary<string, int> _fileIndexDic = new Dictionary<string, int>();
-        private bool isPause = false;
-        private bool connectInfoIsChanged = false;
-        private bool isNeedAutoReconnect;
-        private List<UserConfig.ConfigInfo> _userconfigList = new List<UserConfig.ConfigInfo>();
-        private int _currentConfigUsed;
-        private bool isRealTimeSyncEnable = false;
+        
 
         private void resetToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -676,15 +676,12 @@ namespace FileSync
                 Task.Factory.StartNew(() =>
                 {
                     updateUploadStatusDisplay(0, "Uploading", item);
-                    Console.WriteLine($"Done the Uploading: {item}");
                     if (!uploadFile(item))
                     {
                         updateUploadStatusDisplay(0, "Upload", item);
-                        Console.WriteLine($"uploadFile failed: {item}");
                         return;
                     }
                     removeFileItem(0, item);
-                    Console.WriteLine($"remove File: {item}");
                     return;
                 });
             }
@@ -736,17 +733,74 @@ namespace FileSync
             });
         }
 
+
+        private void stopRealTimeSync()
+        {
+            ActionCall<int> stopRealTime = new ActionCall<int>((int placeHolder) =>
+            {
+                toolStripStatusLabel_status.Text = "";
+                _fileChangeDurTimer.Stop();
+                return 0;
+            });
+            this.Invoke(stopRealTime, 0);
+            
+        }
+
+
+        private void startRealTimeSync()
+        {
+            _fileChangeDurTimer.Interval = 1000;
+            _fileChangeDurTimer.Start();
+            _fileChangeDurTimer.Elapsed += ChangeDurTimer_Elapsed;
+            toolStripStatusLabel_status.Text = "Real time  Sync is enable !";
+            statusStrip_infoBar.ForeColor = Color.OrangeRed;
+        }
+
         private void realTimeSyncToolStripMenuItem_Click(object sender, EventArgs e)
         {
             isRealTimeSyncEnable = !isRealTimeSyncEnable;
-            //if (isRealTimeSyncEnable)
-            //{
+            if (isRealTimeSyncEnable)
+            {
+                startRealTimeSync();
 
-            //}
-            //else
-            //{
+            }
+            else
+            {
+                stopRealTimeSync();
 
-            //}
+            }
         }
+        private volatile static string downloadingFile = "";
+        private volatile static bool isInDownload = false;
+        private readonly static object _uiLockObj = new object();
+        private readonly static object sftpLocker = new object();
+        private readonly static object gitReadLocker = new object();
+        private readonly static object configSaveLocker = new object();
+        private readonly static object _realTimeSyncLockObj = new object();
+        private SftpClient _sftpClient;
+        private FileTransfer CommandRunner = new FileTransfer(4);
+        private delegate int ActionCall<in T>(T t);
+        private string _configFileName = "";
+        private string _monitorPath = "";
+        private string _serverAddress = "";
+        private string _userName = "";
+        private string _userPassWd = "";
+        private string _remotePath = "";
+        private string[] _fileFilter = { };
+        private string _gitProgramPath = "";
+        private FileWachter fileWachter = new FileWachter();
+        private UserConfig userConfig = new UserConfig();
+        private List<Tuple<string, string, string>> changedFileList = new List<Tuple<string, string, string>>();
+        private Dictionary<string, int> _fileIndexDic = new Dictionary<string, int>();
+        private bool isPause = false;
+        private bool connectInfoIsChanged = false;
+        private bool isNeedAutoReconnect;
+        private List<UserConfig.ConfigInfo> _userconfigList = new List<UserConfig.ConfigInfo>();
+        private int _currentConfigUsed;
+        private bool isRealTimeSyncEnable = false;
+        private Timer _fileChangeDurTimer = new System.Timers.Timer();
+        private FileSyncInfo _nextSyncFileInfo = new FileSyncInfo();
+        private DateTime _preChangeTime = DateTime.Now;
+        private bool _haseChanged = false;
     }
 }
