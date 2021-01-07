@@ -154,17 +154,17 @@
   <data name="gitChangedToolStripMenuItem.Text" xml:space="preserve">
     <value>Git Changed</value>
   </data>
-  <data name="realTimeSyncToolStripMenuItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>74, 20</value>
-  </data>
-  <data name="realTimeSyncToolStripMenuItem.Text" xml:space="preserve">
-    <value>Upload All</value>
-  </data>
   <data name="realTimeSyncToolStripMenuItem1.Size" type="System.Drawing.Size, System.Drawing">
     <value>96, 20</value>
   </data>
   <data name="realTimeSyncToolStripMenuItem1.Text" xml:space="preserve">
     <value>RealTime Sync</value>
+  </data>
+  <data name="realTimeSyncToolStripMenuItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>74, 20</value>
+  </data>
+  <data name="realTimeSyncToolStripMenuItem.Text" xml:space="preserve">
+    <value>Upload All</value>
   </data>
   <data name="menuStrip1.Location" type="System.Drawing.Point, System.Drawing">
     <value>0, 0</value>
@@ -197,6 +197,12 @@
   <metadata name="contextMenuStrip_backgroud.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>499, 17</value>
   </metadata>
+  <data name="exitToolStripMenuItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>92, 22</value>
+  </data>
+  <data name="exitToolStripMenuItem.Text" xml:space="preserve">
+    <value>Exit</value>
+  </data>
   <data name="contextMenuStrip_backgroud.Size" type="System.Drawing.Size, System.Drawing">
     <value>93, 26</value>
   </data>
@@ -288,15 +294,12 @@
   <data name="notifyIcon_background.Visible" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
-  <data name="exitToolStripMenuItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>92, 22</value>
-  </data>
-  <data name="exitToolStripMenuItem.Text" xml:space="preserve">
-    <value>Exit</value>
-  </data>
   <metadata name="statusStrip_infoBar.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>726, 17</value>
   </metadata>
+  <data name="toolStripStatusLabel_status.Size" type="System.Drawing.Size, System.Drawing">
+    <value>0, 17</value>
+  </data>
   <data name="statusStrip_infoBar.Location" type="System.Drawing.Point, System.Drawing">
     <value>0, 350</value>
   </data>
@@ -317,55 +320,6 @@
   </data>
   <data name="&gt;&gt;statusStrip_infoBar.ZOrder" xml:space="preserve">
     <value>2</value>
-  </data>
-  <data name="toolStripStatusLabel_status.Size" type="System.Drawing.Size, System.Drawing">
-    <value>0, 17</value>
-  </data>
-  <metadata name="FileName.UserAddedColumn" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>True</value>
-  </metadata>
-  <metadata name="ChangeTime.UserAddedColumn" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>True</value>
-  </metadata>
-  <metadata name="ChangeType.UserAddedColumn" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>True</value>
-  </metadata>
-  <metadata name="UpLoad.UserAddedColumn" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>True</value>
-  </metadata>
-  <metadata name="Downlaod.UserAddedColumn" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>True</value>
-  </metadata>
-  <metadata name="igroneThisTime.UserAddedColumn" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>True</value>
-  </metadata>
-  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
-  <data name="FileChangeGridView.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
-    <value>Fill</value>
-  </data>
-  <data name="FileChangeGridView.Location" type="System.Drawing.Point, System.Drawing">
-    <value>0, 24</value>
-  </data>
-  <data name="FileChangeGridView.RowHeadersWidth" type="System.Int32, mscorlib">
-    <value>50</value>
-  </data>
-  <data name="FileChangeGridView.Size" type="System.Drawing.Size, System.Drawing">
-    <value>961, 326</value>
-  </data>
-  <data name="FileChangeGridView.TabIndex" type="System.Int32, mscorlib">
-    <value>0</value>
-  </data>
-  <data name="&gt;&gt;FileChangeGridView.Name" xml:space="preserve">
-    <value>FileChangeGridView</value>
-  </data>
-  <data name="&gt;&gt;FileChangeGridView.Type" xml:space="preserve">
-    <value>System.Windows.Forms.DataGridView, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;FileChangeGridView.Parent" xml:space="preserve">
-    <value>$this</value>
-  </data>
-  <data name="&gt;&gt;FileChangeGridView.ZOrder" xml:space="preserve">
-    <value>1</value>
   </data>
   <metadata name="FileName.UserAddedColumn" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
@@ -420,6 +374,34 @@
   </data>
   <data name="igroneThisTime.Width" type="System.Int32, mscorlib">
     <value>43</value>
+  </data>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="FileChangeGridView.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Fill</value>
+  </data>
+  <data name="FileChangeGridView.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 24</value>
+  </data>
+  <data name="FileChangeGridView.RowHeadersWidth" type="System.Int32, mscorlib">
+    <value>50</value>
+  </data>
+  <data name="FileChangeGridView.Size" type="System.Drawing.Size, System.Drawing">
+    <value>961, 326</value>
+  </data>
+  <data name="FileChangeGridView.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;FileChangeGridView.Name" xml:space="preserve">
+    <value>FileChangeGridView</value>
+  </data>
+  <data name="&gt;&gt;FileChangeGridView.Type" xml:space="preserve">
+    <value>System.Windows.Forms.DataGridView, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;FileChangeGridView.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;FileChangeGridView.ZOrder" xml:space="preserve">
+    <value>1</value>
   </data>
   <metadata name="$this.Localizable" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
@@ -560,6 +542,12 @@
   <data name="&gt;&gt;realTimeSyncToolStripMenuItem.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="&gt;&gt;realTimeSyncToolStripMenuItem1.Name" xml:space="preserve">
+    <value>realTimeSyncToolStripMenuItem1</value>
+  </data>
+  <data name="&gt;&gt;realTimeSyncToolStripMenuItem1.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
   <data name="&gt;&gt;notifyIcon_background.Name" xml:space="preserve">
     <value>notifyIcon_background</value>
   </data>
@@ -613,12 +601,6 @@
   </data>
   <data name="&gt;&gt;igroneThisTime.Type" xml:space="preserve">
     <value>System.Windows.Forms.DataGridViewButtonColumn, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;realTimeSyncToolStripMenuItem1.Name" xml:space="preserve">
-    <value>realTimeSyncToolStripMenuItem1</value>
-  </data>
-  <data name="&gt;&gt;realTimeSyncToolStripMenuItem1.Type" xml:space="preserve">
-    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;$this.Name" xml:space="preserve">
     <value>MainForm</value>
