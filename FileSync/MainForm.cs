@@ -292,7 +292,7 @@ namespace FileSync
                 {
                     TimeSpan duration = DateTime.Now - _preChangeTime;
                     _preChangeTime = DateTime.Now;
-                    if (duration.TotalMilliseconds < 500)
+                    if (duration.TotalMilliseconds < 800)
                     {
                         stopRealTimeSync();
                     }
@@ -740,6 +740,7 @@ namespace FileSync
             {
                 toolStripStatusLabel_status.Text = "";
                 _fileChangeDurTimer.Stop();
+                isRealTimeSyncEnable = false;
                 return 0;
             });
             this.Invoke(stopRealTime, 0);
