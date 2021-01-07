@@ -16,7 +16,8 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 using System.Text.RegularExpressions;
-
+using System.Timers;
+using Timer = System.Timers.Timer;
 
 namespace FileSync
 {
@@ -280,6 +281,19 @@ namespace FileSync
             if (!_fileIndexDic.ContainsKey(fileChangeInfo.fullPath))
             {
                 addChangedFileRow(ref fileChangeInfo);
+                FileChangeInfo tempChangeInfo = fileChangeInfo;
+                if (isRealTimeSyncEnable)
+                {
+                    Task.Factory.StartNew(() =>
+                    {
+                        Timer changeDurTimer = new System.Timers.Timer();
+                        changeDurTimer.Interval = 500;
+                        changeDurTimer.Elapsed += ChangeDurTimer_Elapsed;
+                        uploadFile(tempChangeInfo.fullPath);
+                    }
+                    );
+                    
+                }
             }
             else
             {
@@ -294,6 +308,12 @@ namespace FileSync
             return;
 
         }
+
+        private void ChangeDurTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            //throw new NotImplementedException();
+        }
+
         private void FileWachter_MonitorFileChanged(object sender, FileChangeInfo fileChangeInfo)
         {
             updateFileList(ref fileChangeInfo);
@@ -602,6 +622,7 @@ namespace FileSync
         private bool isNeedAutoReconnect;
         private List<UserConfig.ConfigInfo> _userconfigList = new List<UserConfig.ConfigInfo>();
         private int _currentConfigUsed;
+        private bool isRealTimeSyncEnable = false;
 
         private void resetToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -713,6 +734,19 @@ namespace FileSync
                     getGitModifyFileList();
                 }
             });
+        }
+
+        private void realTimeSyncToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            isRealTimeSyncEnable = !isRealTimeSyncEnable;
+            //if (isRealTimeSyncEnable)
+            //{
+
+            //}
+            //else
+            //{
+
+            //}
         }
     }
 }
