@@ -276,6 +276,7 @@ namespace FileSync
 
         private void updateFileList(ref FileChangeInfo fileChangeInfo)
         {
+            int index = -1;
             if (!isAttentionFile(ref fileChangeInfo))
             {
                 return;
@@ -286,23 +287,8 @@ namespace FileSync
             }
             if (!_fileIndexDic.ContainsKey(fileChangeInfo.fullPath))
             {
-                int index =  addChangedFileRow(ref fileChangeInfo);
-                FileChangeInfo tempChangeInfo = fileChangeInfo;
-                if (isRealTimeSyncEnable)
-                {
-                    TimeSpan duration = DateTime.Now - _preChangeTime;
-                    _preChangeTime = DateTime.Now;
-                    if (duration.TotalMilliseconds < 800)
-                    {
-                        stopRealTimeSync();
-                    }
-                    else
-                    {
-                        _nextSyncFileInfo.fileFullPath = fileChangeInfo.fullPath;
-                        _nextSyncFileInfo.dataTableIndex = index;
-                        _haseChanged = true;
-                    }                    
-                }
+                index =  addChangedFileRow(ref fileChangeInfo);
+                _isNewChangedFile = true;
             }
             else
             {
@@ -310,8 +296,27 @@ namespace FileSync
                 {
                     return;
                 }
-                FileChangeGridView.Rows[_fileIndexDic[fileChangeInfo.fullPath]].Cells[1].Value = fileChangeInfo.changeTime;
-                FileChangeGridView.Rows[_fileIndexDic[fileChangeInfo.fullPath]].Cells[2].Value = fileChangeInfo.changeType.ToString();
+                index = _fileIndexDic[fileChangeInfo.fullPath];
+                FileChangeGridView.Rows[index].Cells[1].Value = fileChangeInfo.changeTime;
+                FileChangeGridView.Rows[index].Cells[2].Value = fileChangeInfo.changeType.ToString();
+            }
+            FileChangeInfo tempChangeInfo = fileChangeInfo;
+            if (isRealTimeSyncEnable)
+            {
+
+                TimeSpan duration = DateTime.Now - _preChangeTime;
+                _preChangeTime = DateTime.Now;
+                if (duration.TotalMilliseconds < 800 && _isNewChangedFile)
+                {
+                    stopRealTimeSync();
+                }
+                else
+                {
+                    _nextSyncFileInfo.fileFullPath = fileChangeInfo.fullPath;
+                    _nextSyncFileInfo.dataTableIndex = index;
+                    _haseChanged = true;
+                    _isNewChangedFile = false;
+                }
             }
             resizeColumn(0);
             return;
@@ -803,5 +808,6 @@ namespace FileSync
         private FileSyncInfo _nextSyncFileInfo = new FileSyncInfo();
         private DateTime _preChangeTime = DateTime.Now;
         private bool _haseChanged = false;
+        private bool _isNewChangedFile = false;
     }
 }
