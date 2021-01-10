@@ -500,7 +500,7 @@ namespace FileSync
         }
 
 
-        private void updateUploadStatusDisplay(int rowIndex, string displayStatus,string fileName="")
+        private void updateUploadStatusDisplay(int rowIndex, string displayStatus,string fileName="",int operationalType = 0)
         {
             Action<string> mi = new Action<string>((status) =>
             {
@@ -520,9 +520,13 @@ namespace FileSync
                         }
                     }
                 }
-                DataGridViewButtonCell uploadButton = (DataGridViewButtonCell)FileChangeGridView.Rows[vaildRowIndex].Cells[3];
+                if (operationalType>1 || operationalType < 0)
+                {
+                    return;
+                }
+                DataGridViewButtonCell uploadButton = (DataGridViewButtonCell)FileChangeGridView.Rows[vaildRowIndex].Cells[3+ operationalType];
                 uploadButton.UseColumnTextForButtonValue = false;
-                resizeColumn(3);
+                resizeColumn(3+ operationalType);
                 uploadButton.Value = status;
             });
             lock (_uiLockObj)
@@ -533,9 +537,10 @@ namespace FileSync
         }
         private void downloadFile(DataGridViewCellEventArgs e)
         {
-            //updateUploadStatusDisplay(e, "Downloading");
+            
             isInDownload = true;
             string fullFilePath = FileChangeGridView.Rows[e.RowIndex].Cells[0].Value.ToString();
+            updateUploadStatusDisplay(e.RowIndex, "Downloading",fullFilePath,1);
             downloadingFile = fullFilePath;
             string filePath = fullFilePath.Replace(_monitorPath, "").Replace("\\", "/");
             string remoteFilePath = _remotePath + "/" + filePath;
@@ -560,6 +565,7 @@ namespace FileSync
             {
                 MessageBox.Show(string.Format("File: {0} Download Faild! Error info: {1}",
                     FileChangeGridView.Rows[e.RowIndex].Cells[0].Value.ToString(), ex.Message), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                updateUploadStatusDisplay(e.RowIndex, "Download", fullFilePath,1);
                 this.Activate();
             }
             isInDownload = false;
