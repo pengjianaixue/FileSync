@@ -287,7 +287,7 @@ namespace FileSync
             }
             if (!_fileIndexDic.ContainsKey(fileChangeInfo.fullPath))
             {
-                index =  addChangedFileRow(ref fileChangeInfo);
+                index = addChangedFileRow(ref fileChangeInfo);
                 _isNewChangedFile = true;
             }
             else
@@ -297,8 +297,15 @@ namespace FileSync
                     return;
                 }
                 index = _fileIndexDic[fileChangeInfo.fullPath];
-                FileChangeGridView.Rows[index].Cells[1].Value = fileChangeInfo.changeTime;
-                FileChangeGridView.Rows[index].Cells[2].Value = fileChangeInfo.changeType.ToString();
+                if (index > FileChangeGridView.RowCount || index < 0)
+                {
+                    return;
+                }
+                lock (_uiLockObj)
+                {
+                    FileChangeGridView.Rows[index].Cells[1].Value = fileChangeInfo.changeTime;
+                    FileChangeGridView.Rows[index].Cells[2].Value = fileChangeInfo.changeType.ToString();
+                }
             }
             FileChangeInfo tempChangeInfo = fileChangeInfo;
             if (isRealTimeSyncEnable)
