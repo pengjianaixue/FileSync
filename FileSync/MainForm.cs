@@ -26,8 +26,8 @@ namespace FileSync
 
     struct FileSyncInfo
     {
-       public string fileFullPath;
-       public int dataTableIndex;
+        public string fileFullPath;
+        public int dataTableIndex;
     }
 
     public partial class MainForm : Form
@@ -41,10 +41,10 @@ namespace FileSync
             _configFileName = Environment.CurrentDirectory + "/config.json";
             configLoad(_configFileName);
             clearView();
-            Task.Factory.StartNew(()=>sshChannelCreate());
+            Task.Factory.StartNew(() => sshChannelCreate());
             // not use 
             CommandRunner.programPath = _gitProgramPath;
-            
+
 
         }
 
@@ -67,14 +67,14 @@ namespace FileSync
         }
         private bool sshChannelCreate()
         {
-            
+
             try
             {
-	            if (_serverAddress.Length > 0 && _userName.Length > 0 && _userPassWd.Length > 0)
+                if (_serverAddress.Length > 0 && _userName.Length > 0 && _userPassWd.Length > 0)
                 {
                     _sftpClient = new SftpClient(_serverAddress, _userName, _userPassWd);
                     _sftpClient.Connect();
-                    _sftpClient.KeepAliveInterval = new System.TimeSpan(TimeSpan.TicksPerSecond*30);
+                    _sftpClient.KeepAliveInterval = new System.TimeSpan(TimeSpan.TicksPerSecond * 30);
                     _sftpClient.ErrorOccurred += _sftpClient_ErrorOccurred;
                     return true;
                 }
@@ -82,7 +82,7 @@ namespace FileSync
             }
             catch (System.Exception ex)
             {
-                MessageBox.Show(string.Format("sftp connect is failed Error info: {0}, pelase check connect config!", ex.Message), 
+                MessageBox.Show(string.Format("sftp connect is failed Error info: {0}, pelase check connect config!", ex.Message),
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
 
@@ -121,10 +121,10 @@ namespace FileSync
                     userConfig.comboBox_Configuration.Text = item.configrationName;
                     userConfig.textBox_GitProgramPath.Text = _gitProgramPath;
                 }
-                
+
             }
-            
-            
+
+
 
         }
         private void recordUserConfigration(string filePath)
@@ -138,7 +138,7 @@ namespace FileSync
                     serializer.Serialize(file, _userconfigList);
                 }
             }
-            
+
 
         }
 
@@ -204,7 +204,7 @@ namespace FileSync
                 default:
                     break;
             }
-            Task.Factory.StartNew(()=>recordUserConfigration(_configFileName));
+            Task.Factory.StartNew(() => recordUserConfigration(_configFileName));
         }
 
         private int addChangedFileRow(ref FileChangeInfo fileChangeInfo)
@@ -228,8 +228,8 @@ namespace FileSync
             };
             if (FileChangeGridView.InvokeRequired)
             {
-                ActionCall<DataGridViewRow> addRow = new ActionCall<DataGridViewRow>( (DataGridViewRow rowData) => { return FileChangeGridView.Rows.Add(rowData); });
-                index =  (int)this.Invoke(addRow, row);
+                ActionCall<DataGridViewRow> addRow = new ActionCall<DataGridViewRow>((DataGridViewRow rowData) => { return FileChangeGridView.Rows.Add(rowData); });
+                index = (int)this.Invoke(addRow, row);
                 _fileIndexDic.Add(fileChangeInfo.fullPath, index);
             }
             else
@@ -348,8 +348,8 @@ namespace FileSync
                 );
                 _haseChanged = false;
             }
-            
-            
+
+
         }
 
         private void FileWachter_MonitorFileChanged(object sender, FileChangeInfo fileChangeInfo)
@@ -366,7 +366,7 @@ namespace FileSync
         {
             userConfig.Show();
         }
-        
+
 
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -396,7 +396,7 @@ namespace FileSync
                 if (rowIndex >= 0)
                 {
                     string fileName;
-                    
+
                     if (rowIndex < FileChangeGridView.RowCount)
                     {
                         //Console.WriteLine($"rowIndex: {rowIndex} < FileChangeGridView.RowCount {FileChangeGridView.RowCount}");
@@ -431,7 +431,7 @@ namespace FileSync
 
         }
         private bool checkLocalDirAndCreate(string localFilePath)
-        {   
+        {
 
             try
             {
@@ -500,14 +500,14 @@ namespace FileSync
             }
             catch (System.Exception ex)
             {
-                MessageBox.Show(string.Format("Sftp Client occur exception: {0},Please check config !",ex.Message), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(string.Format("Sftp Client occur exception: {0},Please check config !", ex.Message), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 this.Activate();
                 return false;
             }
         }
 
 
-        private void updateUploadStatusDisplay(int rowIndex, string displayStatus,string fileName="",int operationalType = 0)
+        private void updateUploadStatusDisplay(int rowIndex, string displayStatus, string fileName = "", int operationalType = 0)
         {
             Action<string> mi = new Action<string>((status) =>
             {
@@ -527,13 +527,13 @@ namespace FileSync
                         }
                     }
                 }
-                if (operationalType>1 || operationalType < 0)
+                if (operationalType > 1 || operationalType < 0)
                 {
                     return;
                 }
-                DataGridViewButtonCell uploadButton = (DataGridViewButtonCell)FileChangeGridView.Rows[vaildRowIndex].Cells[3+ operationalType];
+                DataGridViewButtonCell uploadButton = (DataGridViewButtonCell)FileChangeGridView.Rows[vaildRowIndex].Cells[3 + operationalType];
                 uploadButton.UseColumnTextForButtonValue = false;
-                resizeColumn(3+ operationalType);
+                resizeColumn(3 + operationalType);
                 uploadButton.Value = status;
             });
             lock (_uiLockObj)
@@ -544,10 +544,10 @@ namespace FileSync
         }
         private void downloadFile(DataGridViewCellEventArgs e)
         {
-            
+
             isInDownload = true;
             string fullFilePath = FileChangeGridView.Rows[e.RowIndex].Cells[0].Value.ToString();
-            updateUploadStatusDisplay(e.RowIndex, "Downloading",fullFilePath,1);
+            updateUploadStatusDisplay(e.RowIndex, "Downloading", fullFilePath, 1);
             downloadingFile = fullFilePath;
             string filePath = fullFilePath.Replace(_monitorPath, "").Replace("\\", "/");
             string remoteFilePath = _remotePath + "/" + filePath;
@@ -572,7 +572,7 @@ namespace FileSync
             {
                 MessageBox.Show(string.Format("File: {0} Download Faild! Error info: {1}",
                     FileChangeGridView.Rows[e.RowIndex].Cells[0].Value.ToString(), ex.Message), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                updateUploadStatusDisplay(e.RowIndex, "Download", fullFilePath,1);
+                updateUploadStatusDisplay(e.RowIndex, "Download", fullFilePath, 1);
                 this.Activate();
             }
             isInDownload = false;
@@ -595,11 +595,11 @@ namespace FileSync
                     _sftpClient.UploadFile(stream, remoteFilePath, true);
                 }
                 return true;
-                
+
             }
             catch (System.Exception ex)
             {
-                
+
                 MessageBox.Show(string.Format("File: {0} Upload Faild, Error info: {1}!",
                     fullFilePath, ex.Message), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 this.Activate();
@@ -624,9 +624,9 @@ namespace FileSync
         {
             if (e.RowIndex < FileChangeGridView.RowCount)
             {
-                if (e.ColumnIndex == 3 && 
-                    _monitorPath.Length > 0 
-                    && _remotePath.Length > 0 
+                if (e.ColumnIndex == 3 &&
+                    _monitorPath.Length > 0
+                    && _remotePath.Length > 0
                     && _serverAddress.Length > 0
                     )
                 {
@@ -643,7 +643,7 @@ namespace FileSync
                 }
             }
         }
-        
+
 
         private void resetToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -706,7 +706,7 @@ namespace FileSync
                     return;
                 });
             }
-            
+
 
         }
         private void getGitModifyFileList()
@@ -746,7 +746,8 @@ namespace FileSync
 
         private void gitChangedToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Task.Factory.StartNew(()=> {
+            Task.Factory.StartNew(() =>
+            {
                 lock (gitReadLocker)
                 {
                     getGitModifyFileList();
@@ -765,7 +766,7 @@ namespace FileSync
                 return 0;
             });
             this.Invoke(stopRealTime, 0);
-            
+
         }
 
 
