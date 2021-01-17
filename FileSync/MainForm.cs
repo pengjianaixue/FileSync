@@ -501,7 +501,9 @@ namespace FileSync
             catch (System.Exception ex)
             {
                 MessageBox.Show(string.Format("Sftp Client occur exception: {0},Please check config !", ex.Message), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                this.Activate();
+                Show();
+                Activate();
+                SwtichToWindows.swtichToWindows(this);
                 return false;
             }
         }
@@ -573,7 +575,9 @@ namespace FileSync
                 MessageBox.Show(string.Format("File: {0} Download Faild! Error info: {1}",
                     FileChangeGridView.Rows[e.RowIndex].Cells[0].Value.ToString(), ex.Message), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 updateUploadStatusDisplay(e.RowIndex, "Download", fullFilePath, 1);
-                this.Activate();
+                Show();
+                Activate();
+                SwtichToWindows.swtichToWindows(this);
             }
             isInDownload = false;
 
