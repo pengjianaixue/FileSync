@@ -296,13 +296,13 @@ namespace FileSync
                 {
                     return;
                 }
-                index = _fileIndexDic[fileChangeInfo.fullPath];
-                if (index > FileChangeGridView.RowCount || index < 0)
-                {
-                    return;
-                }
                 lock (_uiLockObj)
                 {
+                    index = _fileIndexDic[fileChangeInfo.fullPath];
+                    if (index > FileChangeGridView.RowCount || index < 0)
+                    {
+                        return;
+                    }
                     FileChangeGridView.Rows[index].Cells[1].Value = fileChangeInfo.changeTime;
                     FileChangeGridView.Rows[index].Cells[2].Value = fileChangeInfo.changeType.ToString();
                 }
