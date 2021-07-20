@@ -285,10 +285,14 @@ namespace FileSync
             {
                 return;
             }
+
             if (!_fileIndexDic.ContainsKey(fileChangeInfo.fullPath))
             {
-                index = addChangedFileRow(ref fileChangeInfo);
-                _isNewChangedFile = true;
+                lock (_uiLockObj)
+                {
+                    index = addChangedFileRow(ref fileChangeInfo);
+                    _isNewChangedFile = true;
+                };
             }
             else
             {
@@ -420,7 +424,7 @@ namespace FileSync
                             return;
                         }
                     }
-                    MessageBox.Show($"removeFileItem Error: the original file index: {rowIndex}  and file:  {specialFileName} remove error", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    //MessageBox.Show($"removeFileItem Error: the original file index: {rowIndex}  and file:  {specialFileName} remove error", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
             );
