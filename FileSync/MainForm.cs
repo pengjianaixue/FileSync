@@ -323,9 +323,22 @@ namespace FileSync
                 }
                 else
                 {
-                    _nextSyncFileInfo.fileFullPath = fileChangeInfo.fullPath;
-                    _nextSyncFileInfo.dataTableIndex = index;
-                    _haseChanged = true;
+                    FileSyncInfo fileSyncInfo;
+                    fileSyncInfo.fileFullPath = fileChangeInfo.fullPath;
+                    fileSyncInfo.dataTableIndex = index;
+                    lock (_realTimeSyncLockObj)
+                    {
+
+                        FileSyncInfo item = _fileTransmitList.Find((FileSyncInfo fileSyncInfoItem) =>
+                           {
+                               return fileSyncInfoItem.fileFullPath.Equals(fileSyncInfo.fileFullPath);
+                           });
+                        if (item.fileFullPath == null)
+                        {
+                            _fileTransmitList.Add(fileSyncInfo);
+                        }
+                    }
+                    _uploadProcessIsStarted = true;
                     _isNewChangedFile = false;
                 }
             }
@@ -336,21 +349,35 @@ namespace FileSync
 
         private void ChangeDurTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
-            if (_haseChanged)
+            if (!_uploadProcessIsStarted)
             {
                 Task.Factory.StartNew(() =>
                 {
-                    updateUploadStatusDisplay(_nextSyncFileInfo.dataTableIndex, "Uploading", _nextSyncFileInfo.fileFullPath);
-                    if (!uploadFile(_nextSyncFileInfo.fileFullPath))
+                    _uploadProcessIsStarted = true;
+                    while (isRealTimeSyncEnable)
                     {
-                        updateUploadStatusDisplay(_nextSyncFileInfo.dataTableIndex, "Upload", _nextSyncFileInfo.fileFullPath);
-                        return;
+                        
+                        while (_fileTransmitList.Count >0 && isRealTimeSyncEnable)
+                        {
+                            var ElementFisrt = _fileTransmitList.ElementAt(0);
+                            updateUploadStatusDisplay(ElementFisrt.dataTableIndex, "Uploading", ElementFisrt.fileFullPath);
+                            if (!uploadFile(ElementFisrt.fileFullPath))
+                            {
+                                updateUploadStatusDisplay(ElementFisrt.dataTableIndex, "Upload", ElementFisrt.fileFullPath);
+                            }
+                            removeFileItem(ElementFisrt.dataTableIndex, ElementFisrt.fileFullPath);
+                            lock (_realTimeSyncLockObj)
+                            {
+                                _fileTransmitList.RemoveAt(0);
+                            }
+
+                        }
+                        
                     }
-                    removeFileItem(_nextSyncFileInfo.dataTableIndex, _nextSyncFileInfo.fileFullPath);
+                    _uploadProcessIsStarted = false;
                     return;
                 }
-                );
-                _haseChanged = false;
+                );  
             }
 
 
@@ -772,6 +799,7 @@ namespace FileSync
                 toolStripStatusLabel_status.Text = "";
                 _fileChangeDurTimer.Stop();
                 isRealTimeSyncEnable = false;
+                _fileTransmitList.Clear();
                 return 0;
             });
             this.Invoke(stopRealTime, 0);
@@ -794,12 +822,10 @@ namespace FileSync
             if (isRealTimeSyncEnable)
             {
                 startRealTimeSync();
-
             }
             else
             {
                 stopRealTimeSync();
-
             }
         }
         private volatile static string downloadingFile = "";
@@ -824,6 +850,7 @@ namespace FileSync
         private UserConfig userConfig = new UserConfig();
         private List<Tuple<string, string, string>> changedFileList = new List<Tuple<string, string, string>>();
         private Dictionary<string, int> _fileIndexDic = new Dictionary<string, int>();
+        private List<FileSyncInfo> _fileTransmitList = new List<FileSyncInfo>();
         private bool isPause = false;
         private bool connectInfoIsChanged = false;
         private bool isNeedAutoReconnect;
@@ -831,9 +858,9 @@ namespace FileSync
         private int _currentConfigUsed;
         private bool isRealTimeSyncEnable = false;
         private Timer _fileChangeDurTimer = new System.Timers.Timer();
-        private FileSyncInfo _nextSyncFileInfo = new FileSyncInfo();
+        //private FileSyncInfo _nextSyncFileInfo = new FileSyncInfo();
         private DateTime _preChangeTime = DateTime.Now;
-        private bool _haseChanged = false;
+        private bool _uploadProcessIsStarted = false;
         private bool _isNewChangedFile = false;
     }
 }
