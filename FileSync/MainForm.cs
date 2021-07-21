@@ -635,10 +635,12 @@ namespace FileSync
             }
             catch (System.Exception ex)
             {
-
-                MessageBox.Show(string.Format("File: {0} Upload Faild, Error info: {1}!",
-                    fullFilePath, ex.Message), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                this.Activate();
+                if (!isRealTimeSyncEnable)
+                {
+                    MessageBox.Show(string.Format("File: {0} Upload Faild, Error info: {1}!",
+                   fullFilePath, ex.Message), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    this.Activate();
+                }
                 return false;
             }
         }
