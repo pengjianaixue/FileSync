@@ -320,6 +320,7 @@ namespace FileSync
                 if (duration.TotalMilliseconds < 800 && _isNewChangedFile)
                 {
                     stopRealTimeSync();
+                    _uploadProcessIsStarted = false;
                 }
                 else
                 {
@@ -338,7 +339,6 @@ namespace FileSync
                             _fileTransmitList.Add(fileSyncInfo);
                         }
                     }
-                    _uploadProcessIsStarted = true;
                     _isNewChangedFile = false;
                 }
             }
