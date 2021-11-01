@@ -319,6 +319,7 @@ namespace FileSync
                 _preChangeTime = DateTime.Now;
                 if (duration.TotalMilliseconds < 800 && _isNewChangedFile)
                 {
+                    isRealTimeSyncEnable = false;
                     stopRealTimeSync();
                     _uploadProcessIsStarted = false;
                 }
