@@ -33,12 +33,11 @@
             this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.configToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.syncFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.resetToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pauseToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.gitChangedToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.realTimeSyncToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.realTimeSyncToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.realTimeSyncToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.notifyIcon_background = new System.Windows.Forms.NotifyIcon(this.components);
             this.contextMenuStrip_backgroud = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -61,10 +60,9 @@
             // 
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.configToolStripMenuItem,
-            this.syncFolderToolStripMenuItem,
-            this.resetToolStripMenuItem,
             this.pauseToolStripMenuItem,
             this.gitChangedToolStripMenuItem,
+            this.resetToolStripMenuItem,
             this.realTimeSyncToolStripMenuItem1,
             this.realTimeSyncToolStripMenuItem});
             resources.ApplyResources(this.menuStrip1, "menuStrip1");
@@ -75,11 +73,6 @@
             this.configToolStripMenuItem.Name = "configToolStripMenuItem";
             resources.ApplyResources(this.configToolStripMenuItem, "configToolStripMenuItem");
             this.configToolStripMenuItem.Click += new System.EventHandler(this.configToolStripMenuItem_Click);
-            // 
-            // syncFolderToolStripMenuItem
-            // 
-            this.syncFolderToolStripMenuItem.Name = "syncFolderToolStripMenuItem";
-            resources.ApplyResources(this.syncFolderToolStripMenuItem, "syncFolderToolStripMenuItem");
             // 
             // resetToolStripMenuItem
             // 
@@ -99,17 +92,17 @@
             resources.ApplyResources(this.gitChangedToolStripMenuItem, "gitChangedToolStripMenuItem");
             this.gitChangedToolStripMenuItem.Click += new System.EventHandler(this.gitChangedToolStripMenuItem_Click);
             // 
-            // realTimeSyncToolStripMenuItem
-            // 
-            this.realTimeSyncToolStripMenuItem.Name = "realTimeSyncToolStripMenuItem";
-            resources.ApplyResources(this.realTimeSyncToolStripMenuItem, "realTimeSyncToolStripMenuItem");
-            this.realTimeSyncToolStripMenuItem.Click += new System.EventHandler(this.UplaodAllToolStripMenuItem_Click);
-            // 
             // realTimeSyncToolStripMenuItem1
             // 
             this.realTimeSyncToolStripMenuItem1.Name = "realTimeSyncToolStripMenuItem1";
             resources.ApplyResources(this.realTimeSyncToolStripMenuItem1, "realTimeSyncToolStripMenuItem1");
             this.realTimeSyncToolStripMenuItem1.Click += new System.EventHandler(this.realTimeSyncToolStripMenuItem_Click);
+            // 
+            // realTimeSyncToolStripMenuItem
+            // 
+            this.realTimeSyncToolStripMenuItem.Name = "realTimeSyncToolStripMenuItem";
+            resources.ApplyResources(this.realTimeSyncToolStripMenuItem, "realTimeSyncToolStripMenuItem");
+            this.realTimeSyncToolStripMenuItem.Click += new System.EventHandler(this.UplaodAllToolStripMenuItem_Click);
             // 
             // notifyIcon_background
             // 
@@ -231,7 +224,6 @@
         private System.ComponentModel.BackgroundWorker backgroundWorker1;
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem configToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem syncFolderToolStripMenuItem;
         private System.Windows.Forms.NotifyIcon notifyIcon_background;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip_backgroud;
         private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
