@@ -411,7 +411,10 @@ namespace FileSync
                 Application.Exit();
             }
         }
-
+        private void realTimeSyncOnToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            realTimeSyncFunctionSwitch();            
+        }
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (e.CloseReason == CloseReason.UserClosing)
@@ -819,17 +822,26 @@ namespace FileSync
             statusStrip_infoBar.ForeColor = Color.OrangeRed;
         }
 
-        private void realTimeSyncToolStripMenuItem_Click(object sender, EventArgs e)
+
+        private void realTimeSyncFunctionSwitch()
         {
             isRealTimeSyncEnable = !isRealTimeSyncEnable;
             if (isRealTimeSyncEnable)
             {
                 startRealTimeSync();
+                realTimeSyncOnToolStripMenuItem.Text = "RealTime Sync Off";
             }
             else
             {
                 stopRealTimeSync();
+                realTimeSyncOnToolStripMenuItem.Text = "RealTime Sync On";
             }
+        }
+
+        private void realTimeSyncToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            realTimeSyncFunctionSwitch();
+
         }
         private volatile static string downloadingFile = "";
         private volatile static bool isInDownload = false;
@@ -865,5 +877,7 @@ namespace FileSync
         private DateTime _preChangeTime = DateTime.Now;
         private bool _uploadProcessIsStarted = false;
         private bool _isNewChangedFile = false;
+
+        
     }
 }

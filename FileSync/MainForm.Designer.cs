@@ -33,9 +33,9 @@
             this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.configToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.resetToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pauseToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.gitChangedToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.resetToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.realTimeSyncToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.realTimeSyncToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.notifyIcon_background = new System.Windows.Forms.NotifyIcon(this.components);
@@ -50,6 +50,7 @@
             this.UpLoad = new System.Windows.Forms.DataGridViewButtonColumn();
             this.Downlaod = new System.Windows.Forms.DataGridViewButtonColumn();
             this.igroneThisTime = new System.Windows.Forms.DataGridViewButtonColumn();
+            this.realTimeSyncOnToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.contextMenuStrip_backgroud.SuspendLayout();
             this.statusStrip_infoBar.SuspendLayout();
@@ -74,12 +75,6 @@
             resources.ApplyResources(this.configToolStripMenuItem, "configToolStripMenuItem");
             this.configToolStripMenuItem.Click += new System.EventHandler(this.configToolStripMenuItem_Click);
             // 
-            // resetToolStripMenuItem
-            // 
-            this.resetToolStripMenuItem.Name = "resetToolStripMenuItem";
-            resources.ApplyResources(this.resetToolStripMenuItem, "resetToolStripMenuItem");
-            this.resetToolStripMenuItem.Click += new System.EventHandler(this.resetToolStripMenuItem_Click);
-            // 
             // pauseToolStripMenuItem
             // 
             this.pauseToolStripMenuItem.Name = "pauseToolStripMenuItem";
@@ -91,6 +86,12 @@
             this.gitChangedToolStripMenuItem.Name = "gitChangedToolStripMenuItem";
             resources.ApplyResources(this.gitChangedToolStripMenuItem, "gitChangedToolStripMenuItem");
             this.gitChangedToolStripMenuItem.Click += new System.EventHandler(this.gitChangedToolStripMenuItem_Click);
+            // 
+            // resetToolStripMenuItem
+            // 
+            this.resetToolStripMenuItem.Name = "resetToolStripMenuItem";
+            resources.ApplyResources(this.resetToolStripMenuItem, "resetToolStripMenuItem");
+            this.resetToolStripMenuItem.Click += new System.EventHandler(this.resetToolStripMenuItem_Click);
             // 
             // realTimeSyncToolStripMenuItem1
             // 
@@ -113,6 +114,7 @@
             // contextMenuStrip_backgroud
             // 
             this.contextMenuStrip_backgroud.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.realTimeSyncOnToolStripMenuItem,
             this.exitToolStripMenuItem});
             this.contextMenuStrip_backgroud.Name = "contextMenuStrip_backgroud";
             resources.ApplyResources(this.contextMenuStrip_backgroud, "contextMenuStrip_backgroud");
@@ -199,6 +201,12 @@
             this.igroneThisTime.Text = "Ignore";
             this.igroneThisTime.UseColumnTextForButtonValue = true;
             // 
+            // realTimeSyncOnToolStripMenuItem
+            // 
+            this.realTimeSyncOnToolStripMenuItem.Name = "realTimeSyncOnToolStripMenuItem";
+            resources.ApplyResources(this.realTimeSyncOnToolStripMenuItem, "realTimeSyncOnToolStripMenuItem");
+            this.realTimeSyncOnToolStripMenuItem.Click += new System.EventHandler(this.realTimeSyncOnToolStripMenuItem_Click);
+            // 
             // MainForm
             // 
             resources.ApplyResources(this, "$this");
@@ -241,6 +249,7 @@
         private System.Windows.Forms.ToolStripMenuItem realTimeSyncToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem gitChangedToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem realTimeSyncToolStripMenuItem1;
+        private System.Windows.Forms.ToolStripMenuItem realTimeSyncOnToolStripMenuItem;
     }
 }
 
