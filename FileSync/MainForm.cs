@@ -328,18 +328,7 @@ namespace FileSync
                     FileSyncInfo fileSyncInfo;
                     fileSyncInfo.fileFullPath = fileChangeInfo.fullPath;
                     fileSyncInfo.dataTableIndex = index;
-                    lock (_realTimeSyncLockObj)
-                    {
-
-                        FileSyncInfo item = _fileTransmitList.Find((FileSyncInfo fileSyncInfoItem) =>
-                           {
-                               return fileSyncInfoItem.fileFullPath.Equals(fileSyncInfo.fileFullPath);
-                           });
-                        if (item.fileFullPath == null)
-                        {
-                            _fileTransmitList.Add(fileSyncInfo);
-                        }
-                    }
+                    addFileToRealTimeTrasmitList(fileSyncInfo);
                     _isNewChangedFile = false;
                 }
             }
@@ -348,17 +337,34 @@ namespace FileSync
 
         }
 
+        private void addFileToRealTimeTrasmitList(FileSyncInfo fileSyncInfo)
+        {
+            lock (_realTimeSyncLockObj)
+            {
+
+                FileSyncInfo item = _fileTransmitList.Find((FileSyncInfo fileSyncInfoItem) =>
+                {
+                    return fileSyncInfoItem.fileFullPath.Equals(fileSyncInfo.fileFullPath);
+                });
+                if (item.fileFullPath == null)
+                {
+                    _fileTransmitList.Add(fileSyncInfo);
+                }
+            }
+        }
+
         private void ChangeDurTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
             if (!_uploadProcessIsStarted)
             {
+                
                 Task.Factory.StartNew(() =>
                 {
                     _uploadProcessIsStarted = true;
                     while (isRealTimeSyncEnable)
                     {
-                        
-                        while (_fileTransmitList.Count >0 && isRealTimeSyncEnable)
+
+                        while (_fileTransmitList.Count > 0 && isRealTimeSyncEnable)
                         {
                             var ElementFisrt = _fileTransmitList.ElementAt(0);
                             updateUploadStatusDisplay(ElementFisrt.dataTableIndex, "Uploading", ElementFisrt.fileFullPath);
@@ -373,15 +379,31 @@ namespace FileSync
                             }
 
                         }
-                        
+
                     }
                     _uploadProcessIsStarted = false;
                     return;
                 }
-                );  
+                );
             }
 
 
+        }
+
+        private void addExsitFileToTransmitList()
+        { 
+            foreach (DataGridViewRow item in FileChangeGridView.Rows)
+            {
+                string file_path = item.Cells[0].Value.ToString();
+                FileSyncInfo fileSyncInfo;
+                fileSyncInfo.fileFullPath = file_path;
+                fileSyncInfo.dataTableIndex = item.Index;
+                if (!_fileTransmitList.Contains(fileSyncInfo))
+                {
+                    _fileTransmitList.Add(fileSyncInfo);
+                }
+
+            }
         }
 
         private void FileWachter_MonitorFileChanged(object sender, FileChangeInfo fileChangeInfo)
@@ -815,6 +837,7 @@ namespace FileSync
 
         private void startRealTimeSync()
         {
+            addExsitFileToTransmitList();
             _fileChangeDurTimer.Interval = 1000;
             _fileChangeDurTimer.Start();
             _fileChangeDurTimer.Elapsed += ChangeDurTimer_Elapsed;
