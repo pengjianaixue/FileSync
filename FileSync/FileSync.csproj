@@ -124,6 +124,7 @@
     <EmbeddedResource Include="UserConfig.resx">
       <DependentUpon>UserConfig.cs</DependentUpon>
     </EmbeddedResource>
+    <None Include="example_config.json" />
     <None Include="log4net.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

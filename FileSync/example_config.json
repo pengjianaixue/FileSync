@@ -1,0 +1,24 @@
+[
+  {
+    "configrationName": "E2C",
+    "serverAddress": "10.86.188.153",
+    "userName": "eijpnae",
+    "passWord": "QmVpamluZy4=",
+    "localFolder": "C:\\Code\\ricr",
+    "gitProgramPath": "C:\\Program Files\\Git\\bin\\git.exe",
+    "fileFilter": ".cc;.h;.txt;.am;.c;.ac",
+    "remoteFolder": "/repo/eijpnae/ricr",
+    "isUsed": true
+  },
+  {
+    "configrationName": "seroiuts00967",
+    "serverAddress": "10.117.94.212",
+    "userName": "eijpnae",
+    "passWord": "QmVpamluZyw=",
+    "localFolder": "C:\\Code\\ricr",
+    "gitProgramPath": "C:\\Program Files\\Git\\bin\\git.exe",
+    "fileFilter": ".cc;.h;.txt;.am;.c",
+    "remoteFolder": "/repo/eijpnae/ricr",
+    "isUsed": false
+  }
+]

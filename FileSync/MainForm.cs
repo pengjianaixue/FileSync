@@ -29,6 +29,11 @@ namespace FileSync
         public string fileFullPath;
         public int dataTableIndex;
     }
+    enum OperationalType
+    {
+        UPLOAD,
+        DOWNLOAD
+    }
 
     public partial class MainForm : Form
     {
@@ -44,6 +49,8 @@ namespace FileSync
             Task.Factory.StartNew(() => sshChannelCreate());
             // not use 
             CommandRunner.programPath = _gitProgramPath;
+            ThreadPool.SetMaxThreads(Environment.ProcessorCount, 0);
+            ThreadPool.SetMinThreads(Environment.ProcessorCount, 0);
 
 
         }
@@ -249,7 +256,7 @@ namespace FileSync
                     FileChangeGridView.Columns[column].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
                     return 0;
                 });
-                this.Invoke(resizeAction, 0);
+                FileChangeGridView.Invoke(resizeAction, 0);
 
             }
             else
@@ -307,11 +314,10 @@ namespace FileSync
                     {
                         return;
                     }
-                    FileChangeGridView.Rows[index].Cells[1].Value = fileChangeInfo.changeTime;
-                    FileChangeGridView.Rows[index].Cells[2].Value = fileChangeInfo.changeType.ToString();
+                    FileChangeGridView.Rows[index].Cells[changeTimeColumnOffset].Value = fileChangeInfo.changeTime;
+                    FileChangeGridView.Rows[index].Cells[changeTypeColumnOffset].Value = fileChangeInfo.changeType.ToString();
                 }
             }
-            FileChangeInfo tempChangeInfo = fileChangeInfo;
             if (isRealTimeSyncEnable)
             {
 
@@ -319,9 +325,7 @@ namespace FileSync
                 _preChangeTime = DateTime.Now;
                 if (duration.TotalMilliseconds < 800 && _isNewChangedFile)
                 {
-                    isRealTimeSyncEnable = false;
                     stopRealTimeSync();
-                    _uploadProcessIsStarted = false;
                 }
                 else
                 {
@@ -353,39 +357,58 @@ namespace FileSync
             }
         }
 
-        private void ChangeDurTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        private void realTimeWorker(object state)
         {
-            if (!_uploadProcessIsStarted)
+            while (isRealTimeSyncEnable)
             {
-                
-                Task.Factory.StartNew(() =>
+
+                while (_fileTransmitList.Count > 0 && isRealTimeSyncEnable)
                 {
-                    _uploadProcessIsStarted = true;
-                    while (isRealTimeSyncEnable)
+                    FileSyncInfo ElementFisrt;
+                    lock (_realTimeSyncLockObj)
                     {
-
-                        while (_fileTransmitList.Count > 0 && isRealTimeSyncEnable)
+                        if (_fileTransmitList.Count > 0)
                         {
-                            var ElementFisrt = _fileTransmitList.ElementAt(0);
-                            updateUploadStatusDisplay(ElementFisrt.dataTableIndex, "Uploading", ElementFisrt.fileFullPath);
-                            if (!uploadFile(ElementFisrt.fileFullPath))
-                            {
-                                updateUploadStatusDisplay(ElementFisrt.dataTableIndex, "Upload", ElementFisrt.fileFullPath);
-                            }
-                            removeFileItem(ElementFisrt.dataTableIndex, ElementFisrt.fileFullPath);
-                            lock (_realTimeSyncLockObj)
-                            {
-                                _fileTransmitList.RemoveAt(0);
-                            }
-
+                            ElementFisrt = _fileTransmitList.ElementAt(0);
                         }
-
+                        else
+                        {
+                            continue;
+                        }
                     }
-                    _uploadProcessIsStarted = false;
-                    return;
+                    updateOperationStatusDisplay(ElementFisrt.dataTableIndex, "Uploading", ElementFisrt.fileFullPath);
+                    if (!uploadFile(ElementFisrt.fileFullPath))
+                    {
+                        updateOperationStatusDisplay(ElementFisrt.dataTableIndex, "Upload", ElementFisrt.fileFullPath);
+                    }
+                    removeFileItem(ElementFisrt.dataTableIndex, ElementFisrt.fileFullPath);
+                    lock (_realTimeSyncLockObj)
+                    {
+                        if (_fileTransmitList.Count > 0 )
+                        {
+                            _fileTransmitList.RemoveAt(0);
+                        }
+                        
+                    }
+
                 }
-                );
+
             }
+            return;
+        }
+
+        private void startRealTimeSyncWorker()
+        {
+            realTimeSyncTask =  Task.Factory.StartNew
+            (
+                () =>
+                    {
+                        realTimeWorker(null);
+                        return;
+                    }
+                , TaskCreationOptions.LongRunning
+            );
+           
 
 
         }
@@ -398,11 +421,13 @@ namespace FileSync
                 FileSyncInfo fileSyncInfo;
                 fileSyncInfo.fileFullPath = file_path;
                 fileSyncInfo.dataTableIndex = item.Index;
-                if (!_fileTransmitList.Contains(fileSyncInfo))
+                lock (_realTimeSyncLockObj)
                 {
-                    _fileTransmitList.Add(fileSyncInfo);
+                    if (!_fileTransmitList.Contains(fileSyncInfo))
+                    {
+                        _fileTransmitList.Add(fileSyncInfo);
+                    }
                 }
-
             }
         }
 
@@ -449,37 +474,14 @@ namespace FileSync
         private void removeFileItem(int rowIndex, string specialFileName)
         {
             MethodInvoker mi = new MethodInvoker(() =>
-            {
-                if (rowIndex >= 0)
                 {
-                    string fileName;
-
-                    if (rowIndex < FileChangeGridView.RowCount)
+                    int validrowIndex = findDdataRowIndex(rowIndex, specialFileName, FileChangeGridView);
+                    if (validrowIndex >= 0)
                     {
-                        //Console.WriteLine($"rowIndex: {rowIndex} < FileChangeGridView.RowCount {FileChangeGridView.RowCount}");
-                        fileName = FileChangeGridView.Rows[rowIndex].Cells[0].Value.ToString();
-                        if (specialFileName == fileName)
-                        {
-                            FileChangeGridView.Rows.RemoveAt(rowIndex);
-                            //Console.WriteLine($"specialFileName: {specialFileName} == fileName {fileName}");
-                            _fileIndexDic.Remove(specialFileName);
-                            return;
-                        }
+                        FileChangeGridView.Rows.RemoveAt(validrowIndex);
+                        _fileIndexDic.Remove(specialFileName);
                     }
-                    foreach (DataGridViewRow item in FileChangeGridView.Rows)
-                    {
-
-                        fileName = item.Cells[0].Value.ToString();
-                        if (fileName == specialFileName)
-                        {
-                            FileChangeGridView.Rows.Remove(item);
-                            _fileIndexDic.Remove(specialFileName);
-                            return;
-                        }
-                    }
-                    //MessageBox.Show($"removeFileItem Error: the original file index: {rowIndex}  and file:  {specialFileName} remove error", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
-            }
             );
             lock (_uiLockObj)
             {
@@ -487,6 +489,39 @@ namespace FileSync
             }
 
         }
+
+        private int findDdataRowIndex(int rowIndex, string KeyName, DataGridView dataGridView)
+        {
+            const int FileNameIndex = 0;
+            if (rowIndex >= 0)
+            {
+                string rowKeyName;
+                if (rowIndex < dataGridView.RowCount)
+                {
+                    rowKeyName = dataGridView.Rows[rowIndex].Cells[FileNameIndex].Value.ToString();
+                    if (KeyName == rowKeyName)
+                    {
+                        return dataGridView.Rows[rowIndex].Index;
+                    }
+                }
+                foreach (DataGridViewRow item in dataGridView.Rows)
+                {
+
+                    rowKeyName = item.Cells[FileNameIndex].Value.ToString();
+                    if (rowKeyName == KeyName)
+                    {
+                        return item.Index;
+                    }
+                }
+                return -1;
+            }
+            else
+            {
+                MessageBox.Show($"rowIndex is less than 0 : {rowIndex}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return -1;
+            }
+        }
+
         private bool checkLocalDirAndCreate(string localFilePath)
         {
 
@@ -564,49 +599,34 @@ namespace FileSync
                 return false;
             }
         }
-
-
-        private void updateUploadStatusDisplay(int rowIndex, string displayStatus, string fileName = "", int operationalType = 0)
+        private void updateOperationStatusDisplay(int rowIndex,
+                                               string displayStatus,
+                                               string fileName = "",
+                                               OperationalType operationalType = OperationalType.UPLOAD)
         {
-            Action<string> mi = new Action<string>((status) =>
+            Action<string> uiDelegate = new Action<string>((status) =>
             {
-                int vaildRowIndex = rowIndex;
-                if (fileName.Length > 0)
+                int vaildRowIndex = findDdataRowIndex(rowIndex, fileName, FileChangeGridView);
+                if (vaildRowIndex >= 0)
                 {
-                    if (FileChangeGridView.Rows[rowIndex].Cells[0].ToString() != fileName)
-                    {
-                        string currentRowFileName = "";
-                        foreach (DataGridViewRow item in FileChangeGridView.Rows)
-                        {
-                            currentRowFileName = item.Cells[0].Value.ToString();
-                            if (fileName == currentRowFileName)
-                            {
-                                vaildRowIndex = item.Index;
-                            }
-                        }
-                    }
+                    DataGridViewButtonCell uploadButton = (DataGridViewButtonCell)FileChangeGridView.Rows[vaildRowIndex].Cells[uploadColumnOffset + (int)operationalType];
+                    uploadButton.UseColumnTextForButtonValue = false;
+                    resizeColumn(uploadColumnOffset + (int)operationalType);
+                    uploadButton.Value = status;
                 }
-                if (operationalType > 1 || operationalType < 0)
-                {
-                    return;
-                }
-                DataGridViewButtonCell uploadButton = (DataGridViewButtonCell)FileChangeGridView.Rows[vaildRowIndex].Cells[3 + operationalType];
-                uploadButton.UseColumnTextForButtonValue = false;
-                resizeColumn(3 + operationalType);
-                uploadButton.Value = status;
             });
             lock (_uiLockObj)
             {
-                LogHelper.writeInfoLog(string.Format("change upload status:{0} !", displayStatus));
-                FileChangeGridView.Invoke(mi, displayStatus);
+                FileChangeGridView.Invoke(uiDelegate, displayStatus);
             }
+            LogHelper.writeInfoLog(string.Format("change upload status:{0} !", displayStatus));
         }
         private void downloadFile(DataGridViewCellEventArgs e)
         {
 
             isInDownload = true;
             string fullFilePath = FileChangeGridView.Rows[e.RowIndex].Cells[0].Value.ToString();
-            updateUploadStatusDisplay(e.RowIndex, "Downloading", fullFilePath, 1);
+            updateOperationStatusDisplay(e.RowIndex, "Downloading", fullFilePath, OperationalType.DOWNLOAD);
             downloadingFile = fullFilePath;
             string filePath = fullFilePath.Replace(_monitorPath, "").Replace("\\", "/");
             string remoteFilePath = _remotePath + "/" + filePath;
@@ -615,11 +635,11 @@ namespace FileSync
             {
                 if (!checkLocalDirAndCreate(fullFilePath))
                 {
-                    return;
+                    goto failtoDown;
                 }
                 if (!checRemoteResource(remoteFilePath, false))
                 {
-                    return;
+                    goto failtoDown;
                 }
                 using (var stream = File.Open(fullFilePath, FileMode.OpenOrCreate))
                 {
@@ -630,14 +650,17 @@ namespace FileSync
             catch (System.Exception ex)
             {
                 
-                updateUploadStatusDisplay(e.RowIndex, "Download", fullFilePath, 1);
+                updateOperationStatusDisplay(e.RowIndex, "Download", fullFilePath, OperationalType.DOWNLOAD);
                 Show();
                 Activate();
                 SwtichToWindows.swtichToWindows(this);
                 MessageBox.Show(string.Format("File: {0} Download Faild! Error info: {1}",
                     FileChangeGridView.Rows[e.RowIndex].Cells[0].Value.ToString(), ex.Message), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        failtoDown:
+            updateOperationStatusDisplay(e.RowIndex, "Download", fullFilePath, OperationalType.DOWNLOAD);
             isInDownload = false;
+            return;
 
         }
 
@@ -674,10 +697,10 @@ namespace FileSync
         private void uploadFile(DataGridViewCellEventArgs e)
         {
             string fullFilePath = FileChangeGridView.Rows[e.RowIndex].Cells[0].Value.ToString();
-            updateUploadStatusDisplay(e.RowIndex, "Uploading");
+            updateOperationStatusDisplay(e.RowIndex, "Uploading", fullFilePath);
             if (!uploadFile(fullFilePath))
             {
-                updateUploadStatusDisplay(e.RowIndex, "Upload");
+                updateOperationStatusDisplay(e.RowIndex, "Upload", fullFilePath);
                 return;
             }
             removeFileItem(e.RowIndex, fullFilePath);
@@ -688,20 +711,21 @@ namespace FileSync
         {
             if (e.RowIndex < FileChangeGridView.RowCount)
             {
-                if (e.ColumnIndex == 3 &&
+                const int downloadColumnOffet = 4;
+                const int ignoreColumnOffset = 5;
+                if (e.ColumnIndex == uploadColumnOffset &&
                     _monitorPath.Length > 0
                     && _remotePath.Length > 0
                     && _serverAddress.Length > 0
                     )
                 {
                     Task.Factory.StartNew(() => uploadFile(e), TaskCreationOptions.PreferFairness);
-
                 }
-                else if (e.ColumnIndex == 4)
+                else if (e.ColumnIndex == downloadColumnOffet)
                 {
                     Task.Factory.StartNew(() => downloadFile(e), TaskCreationOptions.PreferFairness);
                 }
-                else if (e.ColumnIndex == 5)
+                else if (e.ColumnIndex == ignoreColumnOffset)
                 {
                     removeFileItem(e.RowIndex, FileChangeGridView.Rows[e.RowIndex].Cells[0].Value.ToString());
                 }
@@ -748,25 +772,26 @@ namespace FileSync
         private void UplaodAllToolStripMenuItem_Click(object sender, EventArgs e)
         {
 
-            List<string> uploadFileList = new List<string>();
+            List< Tuple<int,string>> uploadFileList = new List<Tuple<int, string>>();
             foreach (DataGridViewRow item in FileChangeGridView.Rows)
             {
-                if (item.Cells[0].Value.ToString().Length > 0)
+                if (item.Cells[fileNameColumnOffset].Value.ToString().Length > 0)
                 {
-                    uploadFileList.Add(item.Cells[0].Value.ToString());
+                    var pair= new Tuple<int, string>(item.Index, item.Cells[fileNameColumnOffset].Value.ToString());
+                    uploadFileList.Add(pair);
                 }
             }
-            foreach (string item in uploadFileList)
+            foreach (var item in uploadFileList)
             {
                 Task.Factory.StartNew(() =>
                 {
-                    updateUploadStatusDisplay(0, "Uploading", item);
-                    if (!uploadFile(item))
+                    updateOperationStatusDisplay(item.Item1, "Uploading", item.Item2);
+                    if (!uploadFile(item.Item2))
                     {
-                        updateUploadStatusDisplay(0, "Upload", item);
+                        updateOperationStatusDisplay(item.Item1, "Upload", item.Item2);
                         return;
                     }
-                    removeFileItem(0, item);
+                    removeFileItem(item.Item1, item.Item2);
                     return;
                 });
             }
@@ -822,25 +847,22 @@ namespace FileSync
 
         private void stopRealTimeSync()
         {
-            ActionCall<int> stopRealTime = new ActionCall<int>((int placeHolder) =>
+            isRealTimeSyncEnable = false;
+            //realTimeSyncTask.Wait(10);
+            toolStripStatusLabel_status.Text = "";
+            lock (_realTimeSyncLockObj)
             {
-                toolStripStatusLabel_status.Text = "";
-                _fileChangeDurTimer.Stop();
-                isRealTimeSyncEnable = false;
                 _fileTransmitList.Clear();
-                return 0;
-            });
-            this.Invoke(stopRealTime, 0);
-
+            }
         }
 
 
         private void startRealTimeSync()
         {
             addExsitFileToTransmitList();
-            _fileChangeDurTimer.Interval = 1000;
-            _fileChangeDurTimer.Start();
-            _fileChangeDurTimer.Elapsed += ChangeDurTimer_Elapsed;
+            isRealTimeSyncEnable = true;
+            ThreadPool.QueueUserWorkItem(realTimeWorker);
+            //startRealTimeSyncWorker();
             toolStripStatusLabel_status.Text = "Real time  Sync is enable !";
             statusStrip_infoBar.ForeColor = Color.OrangeRed;
         }
@@ -864,7 +886,6 @@ namespace FileSync
         private void realTimeSyncToolStripMenuItem_Click(object sender, EventArgs e)
         {
             realTimeSyncFunctionSwitch();
-
         }
         private volatile static string downloadingFile = "";
         private volatile static bool isInDownload = false;
@@ -895,12 +916,17 @@ namespace FileSync
         private List<UserConfig.ConfigInfo> _userconfigList = new List<UserConfig.ConfigInfo>();
         private int _currentConfigUsed;
         private bool isRealTimeSyncEnable = false;
-        private Timer _fileChangeDurTimer = new System.Timers.Timer();
-        //private FileSyncInfo _nextSyncFileInfo = new FileSyncInfo();
         private DateTime _preChangeTime = DateTime.Now;
-        private bool _uploadProcessIsStarted = false;
         private bool _isNewChangedFile = false;
+        private const int fileNameColumnOffset = 0;
+        private const int changeTimeColumnOffset = 1;
+        private const int changeTypeColumnOffset = 2;
+        private const int uploadColumnOffset = 3;
+        private Task realTimeSyncTask;
 
-        
+
+
+
+
     }
 }
