@@ -88,6 +88,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConcurrencyProcessor.cs" />
     <Compile Include="ConfigLoad.cs" />
     <Compile Include="FileChangeInfo.cs" />
     <Compile Include="FileTransfer.cs" />

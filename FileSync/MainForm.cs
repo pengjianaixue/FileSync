@@ -51,6 +51,7 @@ namespace FileSync
             CommandRunner.programPath = _gitProgramPath;
             ThreadPool.SetMaxThreads(Environment.ProcessorCount, 0);
             ThreadPool.SetMinThreads(Environment.ProcessorCount, 0);
+            concurrencyProcessor = new ConcurrencyProcessor(realTimeWorker, Environment.ProcessorCount);
 
 
         }
@@ -359,42 +360,45 @@ namespace FileSync
 
         private void realTimeWorker(object state)
         {
-            while (isRealTimeSyncEnable)
+            while (true)
             {
-
-                while (_fileTransmitList.Count > 0 && isRealTimeSyncEnable)
+                if (isRealTimeSyncEnable)
                 {
-                    FileSyncInfo ElementFisrt;
-                    lock (_realTimeSyncLockObj)
+                    while (_fileTransmitList.Count > 0 && isRealTimeSyncEnable)
                     {
-                        if (_fileTransmitList.Count > 0)
+                        FileSyncInfo ElementFisrt;
+                        lock (_realTimeSyncLockObj)
                         {
-                            ElementFisrt = _fileTransmitList.ElementAt(0);
+                            if (_fileTransmitList.Count > 0)
+                            {
+                                ElementFisrt = _fileTransmitList.ElementAt(0);
+                            }
+                            else
+                            {
+                                continue;
+                            }
                         }
-                        else
+                        updateOperationStatusDisplay(ElementFisrt.dataTableIndex, "Uploading", ElementFisrt.fileFullPath);
+                        if (!uploadFile(ElementFisrt.fileFullPath))
                         {
-                            continue;
+                            updateOperationStatusDisplay(ElementFisrt.dataTableIndex, "Upload", ElementFisrt.fileFullPath);
+                        }
+                        removeFileItem(ElementFisrt.dataTableIndex, ElementFisrt.fileFullPath);
+                        lock (_realTimeSyncLockObj)
+                        {
+                            if (_fileTransmitList.Count > 0)
+                            {
+                                _fileTransmitList.RemoveAt(0);
+                            }
                         }
                     }
-                    updateOperationStatusDisplay(ElementFisrt.dataTableIndex, "Uploading", ElementFisrt.fileFullPath);
-                    if (!uploadFile(ElementFisrt.fileFullPath))
-                    {
-                        updateOperationStatusDisplay(ElementFisrt.dataTableIndex, "Upload", ElementFisrt.fileFullPath);
-                    }
-                    removeFileItem(ElementFisrt.dataTableIndex, ElementFisrt.fileFullPath);
-                    lock (_realTimeSyncLockObj)
-                    {
-                        if (_fileTransmitList.Count > 0 )
-                        {
-                            _fileTransmitList.RemoveAt(0);
-                        }
-                        
-                    }
-
+                    Thread.Sleep(10);
                 }
-
+                else
+                {
+                    Thread.Sleep(1000);
+                }                
             }
-            return;
         }
 
         private void startRealTimeSyncWorker()
@@ -453,6 +457,7 @@ namespace FileSync
                System.Windows.Forms.MessageBoxButtons.YesNo,
                System.Windows.Forms.MessageBoxIcon.Warning) == System.Windows.Forms.DialogResult.Yes)
             {
+                concurrencyProcessor.stopAllProcessor();
                 this.Close();
                 this.Dispose();
                 Application.Exit();
@@ -861,7 +866,7 @@ namespace FileSync
         {
             addExsitFileToTransmitList();
             isRealTimeSyncEnable = true;
-            ThreadPool.QueueUserWorkItem(realTimeWorker);
+            //ThreadPool.QueueUserWorkItem(realTimeWorker);
             //startRealTimeSyncWorker();
             toolStripStatusLabel_status.Text = "Real time  Sync is enable !";
             statusStrip_infoBar.ForeColor = Color.OrangeRed;
@@ -923,6 +928,7 @@ namespace FileSync
         private const int changeTypeColumnOffset = 2;
         private const int uploadColumnOffset = 3;
         private Task realTimeSyncTask;
+        private ConcurrencyProcessor concurrencyProcessor = null;
 
 
 
